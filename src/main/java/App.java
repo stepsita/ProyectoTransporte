@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatLightLaf; // Importamos el tema claro moderno
 public class App {
     public static void main(String[] args) {
         ConexionBD.inicializarBaseDeDatos();
+        ConexionBD.poblarCatalogos();
         try {
             // Activamos el Look and Feel moderno de FlatLaf
             UIManager.setLookAndFeel(new FlatLightLaf());

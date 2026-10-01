@@ -96,19 +96,19 @@ public class ConexionBD {
                 + ");";
 
         // Ejecución de los scripts en la base de datos
-        try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = conectar(); Statement state = conn.createStatement()) {
             if (conn != null) {
                 // Habilitar el chequeo de llaves foráneas en SQLite
-                stmt.execute("PRAGMA foreign_keys = ON;");
+                state.execute("PRAGMA foreign_keys = ON;");
 
-                stmt.execute(tablaRoles);
-                stmt.execute(tablaTiposPasajero);
-                stmt.execute(tablaTiposRuta);
-                stmt.execute(tablaUsuarios);
-                stmt.execute(tablaUnidades);
-                stmt.execute(tablaRutas);
-                stmt.execute(tablaItinerarios);
-                stmt.execute(tablaReservas);
+                state.execute(tablaRoles);
+                state.execute(tablaTiposPasajero);
+                state.execute(tablaTiposRuta);
+                state.execute(tablaUsuarios);
+                state.execute(tablaUnidades);
+                state.execute(tablaRutas);
+                state.execute(tablaItinerarios);
+                state.execute(tablaReservas);
 
                 System.out.println("Esquema de base de datos generado correctamente.");
             }
@@ -116,4 +116,33 @@ public class ConexionBD {
             System.out.println("Error al crear las tablas: " + e.getMessage());
         }
     }
+
+
+    public static void poblarCatalogos() {
+        String insertRoles = "INSERT OR IGNORE INTO roles (id_rol, nombre) VALUES "
+                + "(1, 'Admin'), "
+                + "(2, 'Chofer'), "
+                + "(3, 'Pasajero');";
+
+        String insertTiposPasajero = "INSERT OR IGNORE INTO tipos_pasajero (id_tipo, nombre) VALUES "
+                + "(1, 'Estudiante'), "
+                + "(2, 'Empleado');";
+
+        String insertTiposRuta = "INSERT OR IGNORE INTO tipos_ruta (id_tipo, nombre) VALUES "
+                + "(1, 'Urbana'), "
+                + "(2, 'Extraurbana');";
+
+        try (Connection conn = conectar(); Statement state = conn.createStatement()) {
+            if (conn != null) {
+                state.execute(insertRoles);
+                state.execute(insertTiposPasajero);
+                state.execute(insertTiposRuta);
+                System.out.println("Catálogos poblados correctamente.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al poblar catálogos: " + e.getMessage());
+        }
+    }
+
+
 }
