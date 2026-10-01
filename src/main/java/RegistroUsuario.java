@@ -10,128 +10,226 @@ public class RegistroUsuario extends JFrame {
 
     public RegistroUsuario() {
         setTitle("Sistema de Transporte UCV - Crear Cuenta");
-        setSize(450, 480);
+        setSize(500, 600); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
         JPanel panelPrincipal = new JPanel(new BorderLayout(20, 20));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
-        panelPrincipal.setBackground(colorArenaFondo);
+        
+        panelPrincipal.setBackground(colorArenaFondo); 
 
         // Encabezado
         JPanel panelHeader = new JPanel(new GridLayout(2, 1, 2, 2));
-        panelHeader.setBackground(colorArenaFondo);
+        panelHeader.setOpaque(false);
         JLabel lblTitulo = new JLabel("Registro de Usuario", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitulo.setForeground(colorAzulOscuro);
-        
         JLabel lblSub = new JLabel("Crea tu cuenta para el sistema de transporte", SwingConstants.CENTER);
-        lblSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblSub.setForeground(colorAzulMedio);
         panelHeader.add(lblTitulo);
         panelHeader.add(lblSub);
         panelPrincipal.add(panelHeader, BorderLayout.NORTH);
 
-        // Formulario (GridBagLayout)
+        // Formulario
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBackground(Color.WHITE);
         panelFormulario.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(colorAzulGris, 1),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
-        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.weightx = 1.0;
 
-        // Cédula
+        // --- CÉDULA ---
         gbc.gridy = 0; gbc.insets = new Insets(5, 0, 2, 0);
         JLabel lblCedula = new JLabel("Cedula:");
         lblCedula.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblCedula.setForeground(colorAzulOscuro);
         panelFormulario.add(lblCedula, gbc);
-        
         gbc.gridy = 1; gbc.insets = new Insets(0, 0, 10, 0);
         JTextField txtCedula = new JTextField();
-        txtCedula.putClientProperty("JTextField.placeholderText", "Ej. 26111222");
         panelFormulario.add(txtCedula, gbc);
 
-        // Nombre Completo
-        gbc.gridy = 2; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblNombre = new JLabel("Nombre Completo:");
+        // --- NOMBRE Y APELLIDO ---
+        gbc.gridy = 2; gbc.insets = new Insets(0, 0, 10, 0);
+        
+        JPanel panelNombres = new JPanel(new GridLayout(1, 2, 10, 0));
+        panelNombres.setOpaque(false);
+        
+        //  (Nombre)
+        JPanel colNombre = new JPanel(new BorderLayout(0, 2));
+        colNombre.setOpaque(false);
+        JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblNombre.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblNombre, gbc);
-        
-        gbc.gridy = 3; gbc.insets = new Insets(0, 0, 10, 0);
+        colNombre.add(lblNombre, BorderLayout.NORTH);
         JTextField txtNombre = new JTextField();
-        txtNombre.putClientProperty("JTextField.placeholderText", "Ej. Stephanie Salazar");
-        panelFormulario.add(txtNombre, gbc);
+        colNombre.add(txtNombre, BorderLayout.CENTER);
+        
+        //  (Apellido)
+        JPanel colApellido = new JPanel(new BorderLayout(0, 2));
+        colApellido.setOpaque(false);
+        JLabel lblApellido = new JLabel("Apellido:");
+        lblApellido.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblApellido.setForeground(colorAzulOscuro);
+        colApellido.add(lblApellido, BorderLayout.NORTH);
+        JTextField txtApellido = new JTextField();
+        colApellido.add(txtApellido, BorderLayout.CENTER);
+        
+        
+        panelNombres.add(colNombre);
+        panelNombres.add(colApellido);
+        panelFormulario.add(panelNombres, gbc);
 
-        // Tipo de Usuario
-        gbc.gridy = 4; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblTipo = new JLabel("Tipo de Usuario:");
+        // --- CORREO ---
+        gbc.gridy = 3; gbc.insets = new Insets(5, 0, 2, 0);
+        JLabel lblCorreo = new JLabel("Correo UCV:");
+        lblCorreo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblCorreo.setForeground(colorAzulOscuro);
+        panelFormulario.add(lblCorreo, gbc);
+        gbc.gridy = 4; gbc.insets = new Insets(0, 0, 10, 0);
+        JTextField txtCorreo = new JTextField();
+        panelFormulario.add(txtCorreo, gbc);
+
+        // --- FACULTAD Y ESCUELA (Paneles Anidados lado a lado) ---
+        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 10, 0);
+        JPanel panelAcademicos = new JPanel(new GridLayout(1, 2, 10, 0));
+        panelAcademicos.setOpaque(false);
+        
+        JPanel colFacultad = new JPanel(new BorderLayout(0, 2));
+        colFacultad.setOpaque(false);
+        JLabel lblFacu = new JLabel("Facultad:");
+        lblFacu.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblFacu.setForeground(colorAzulOscuro);
+        colFacultad.add(lblFacu, BorderLayout.NORTH);
+        JTextField txtFacultad = new JTextField();
+        colFacultad.add(txtFacultad, BorderLayout.CENTER);
+        
+        JPanel colEscuela = new JPanel(new BorderLayout(0, 2));
+        colEscuela.setOpaque(false);
+        JLabel lblEscu = new JLabel("Escuela: (Para estudiantes)");
+        lblEscu.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblEscu.setForeground(colorAzulOscuro);
+        colEscuela.add(lblEscu, BorderLayout.NORTH);
+        JTextField txtEscuela = new JTextField();
+        colEscuela.add(txtEscuela, BorderLayout.CENTER);
+        
+        panelAcademicos.add(colFacultad);
+        panelAcademicos.add(colEscuela);
+        panelFormulario.add(panelAcademicos, gbc);
+
+        // --- TIPO DE PASAJERO ---
+        gbc.gridy = 6; gbc.insets = new Insets(5, 0, 2, 0);
+        JLabel lblTipo = new JLabel("Tipo de miembro:");
         lblTipo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTipo.setForeground(colorAzulOscuro);
         panelFormulario.add(lblTipo, gbc);
+        gbc.gridy = 7; gbc.insets = new Insets(0, 0, 10, 0);
         
-        gbc.gridy = 5; gbc.insets = new Insets(0, 0, 10, 0);
-        String[] opcionesUsuario = {"Estudiante", "Chofer"};
-        JComboBox<String> cmbTipoUsuario = new JComboBox<>(opcionesUsuario);
-        panelFormulario.add(cmbTipoUsuario, gbc);
+        
+        JComboBox<ItemCombo> cmbTipoPasajero = new JComboBox<>(ConsultasBD.obtenerTiposPasajero());
+        panelFormulario.add(cmbTipoPasajero, gbc);
 
-        // Contraseña
-        gbc.gridy = 6; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblClave = new JLabel("Definir Contrasena:");
-        lblClave.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblClave.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblClave, gbc);
-        
-        gbc.gridy = 7; gbc.insets = new Insets(0, 0, 5, 0);
+        // --- CONTRASEÑA ---
+        gbc.gridy = 8; gbc.insets = new Insets(5, 0, 2, 0);
+        JLabel lblcontra = new JLabel("Contraseña:");
+        lblcontra.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblcontra.setForeground(colorAzulOscuro);
+        panelFormulario.add(lblcontra, gbc);
+        gbc.gridy = 9; gbc.insets = new Insets(0, 0, 10, 0);
         JPasswordField txtClave = new JPasswordField();
-        txtClave.putClientProperty("JTextField.placeholderText", "••••••••");
         panelFormulario.add(txtClave, gbc);
 
         panelPrincipal.add(panelFormulario, BorderLayout.CENTER);
 
         // Botones inferiores
         JPanel panelBotones = new JPanel(new GridLayout(1, 2, 15, 0));
-        panelBotones.setBackground(colorArenaFondo);
-        
-        JButton btnVolver = new JButton("Volver al Login");
+        panelBotones.setOpaque(false);
+        JButton btnVolver = new JButton("Volver");
         btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnVolver.setBackground(Color.WHITE);
         btnVolver.setForeground(colorAzulOscuro);
         btnVolver.setBorder(BorderFactory.createLineBorder(colorAzulGris, 1));
-        
+        panelBotones.add(btnVolver);
         JButton btnRegistrar = new JButton("Registrar");
+        btnRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnRegistrar.setBackground(colorAzulOscuro);
         btnRegistrar.setForeground(Color.WHITE);
-        btnRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnRegistrar.setFocusPainted(false);
-
-        panelBotones.add(btnVolver);
         panelBotones.add(btnRegistrar);
         panelPrincipal.add(panelBotones, BorderLayout.SOUTH);
 
         add(panelPrincipal);
 
-        // --- EVENTOS ---
-        btnVolver.addActionListener(e -> {
-            dispose();
-            new InicioSesion().setVisible(true);
-        });
-
+        // --- EVENTO DE REGISTRO ---
         btnRegistrar.addActionListener(e -> {
-            if (!txtCedula.getText().trim().isEmpty() && !txtNombre.getText().trim().isEmpty() && txtClave.getPassword().length > 0) {
-                JOptionPane.showMessageDialog(this, "Registro exitoso en el sistema. Ya puedes iniciar sesion.", "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
+            
+            
+            String cedulaTexto = txtCedula.getText().trim();
+            String nombreTexto = txtNombre.getText().trim();
+            String apellidoTexto = txtApellido.getText().trim();
+            String correoTexto = txtCorreo.getText().trim();
+            String facultadTexto = txtFacultad.getText().trim();
+            String escuelaTexto = txtEscuela.getText().trim();
+            String claveTexto = new String(txtClave.getPassword());
+
+            if (cedulaTexto.isEmpty() || nombreTexto.isEmpty() || correoTexto.isEmpty() || facultadTexto.isEmpty() || claveTexto.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Complete todos los campos obligatorios.", "Campos Vacíos", JOptionPane.WARNING_MESSAGE);
+                return; 
+            }
+
+            if (!cedulaTexto.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "La cédula debe contener únicamente números, sin puntos ni espacios.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (!correoTexto.matches("^[\\w-\\.]+@[\\w-\\.]+\\.com$")) {
+                JOptionPane.showMessageDialog(this, "La dirección de correo es inválida.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            
+            ItemCombo tipoSeleccionado = (ItemCombo) cmbTipoPasajero.getSelectedItem();
+            boolean estudiante = tipoSeleccionado.getNombre().equals("Estudiante");
+
+            if (estudiante && escuelaTexto.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Como estudiante, debe indicar su Escuela.", "Campos Vacíos", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            
+            int idTipoPasajero = tipoSeleccionado.getId();
+            GestionDAO dao = new GestionDAO();
+
+            boolean exito = dao.registrarUsuario(
+                cedulaTexto,
+                nombreTexto,
+                apellidoTexto,
+                correoTexto,
+                claveTexto,
+                3,
+                idTipoPasajero,
+                facultadTexto,
+                estudiante ? escuelaTexto : ""
+            );
+
+            
+            if (exito) {
+                JOptionPane.showMessageDialog(this, "Registro exitoso. Ya puedes iniciar sesión.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
                 new InicioSesion().setVisible(true);
             } else {
-                JOptionPane.showMessageDialog(this, "Por favor, complete todos los campos obligatorios.", "Campos Vacios", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error al registrar. Verifica si el correo o cédula ya existen.", "Error en BD", JOptionPane.ERROR_MESSAGE);
             }
+        });
+
+        btnVolver.addActionListener(e -> {
+            dispose();
+            new InicioSesion().setVisible(true);
         });
     }
 }

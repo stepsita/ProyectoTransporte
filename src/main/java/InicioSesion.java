@@ -50,7 +50,7 @@ public class InicioSesion extends JFrame {
 
         //usuario
         gbc.gridy = 0; gbc.insets = new Insets(0, 0, 2, 0);
-        JLabel lblUser = new JLabel("Cedula o Correo:");
+        JLabel lblUser = new JLabel("Cedula:");
         lblUser.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblUser.setForeground(colorAzulOscuro);
         panelFormulario.add(lblUser, gbc);
@@ -58,7 +58,7 @@ public class InicioSesion extends JFrame {
         gbc.gridy = 1; gbc.insets = new Insets(0, 0, 12, 0);
         JTextField txtUsuario = new JTextField(20); 
         txtUsuario.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtUsuario.putClientProperty("JTextField.placeholderText", "Ej. 25111222 o usuario@ucv.ve");
+        txtUsuario.putClientProperty("JTextField.placeholderText", "Ej. 25111222");
         panelFormulario.add(txtUsuario, gbc);
 
         //contraseña
@@ -107,6 +107,8 @@ public class InicioSesion extends JFrame {
         panelPrincipal.add(panelBotones, BorderLayout.SOUTH);
 
         add(panelPrincipal);
+
+        
         //abrir registro de usuario
         btnRegistrar.addActionListener(e -> {
             dispose();
