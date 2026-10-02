@@ -129,7 +129,7 @@ public class InicioSesion extends JFrame {
             }
         });
 
-        //evento para simular el inicio de sesion y redireccionar segun el tipo de usuario
+        //Iniciar sesión
         btnIngresar.addActionListener(e -> {
             String usuario = txtUsuario.getText().trim();
             String clave = new String(txtClave.getPassword());
@@ -141,30 +141,27 @@ public class InicioSesion extends JFrame {
             GestionDAO dao = new GestionDAO();
 
             int id_rol = dao.validarLogin(usuario, clave);
-
-
-            // if (!exito) {
-            //     JOptionPane.showMessageDialog(this, "Las credenciales ingresadas no son válidas", "Credenciales inválidas", JOptionPane.WARNING_MESSAGE);
-            //     return;
-            //     dispose(); 
-            //     new Pasajero().setVisible(true);
-            // }
-
-
-
-            // if (usuario.equalsIgnoreCase("admin")) {
-            //     dispose(); 
-            //     Administrador pantallaAdmin = new Administrador();
-            //     pantallaAdmin.setVisible(true);
-            // } else if (usuario.equalsIgnoreCase("chofer")) {
-            //     dispose();
-            //     Conductor pantallaChofer = new Conductor();
-            //     pantallaChofer.setVisible(true);
-            // } else if (!usuario.isEmpty() && !clave.isEmpty()) {
-            //     dispose(); 
-            //     Pasajero pantallaPasajero = new Pasajero();
-            //     pantallaPasajero.setVisible(true);
-            // }
+            
+            switch (id_rol) {
+                case 1:
+                    dispose(); 
+                    Administrador pantallaAdmin = new Administrador();
+                    pantallaAdmin.setVisible(true);
+                    break;
+                case 2:
+                    dispose();
+                    Conductor pantallaChofer = new Conductor();
+                    pantallaChofer.setVisible(true);
+                    break;
+                case 3:
+                    dispose(); 
+                    new Pasajero().setVisible(true);
+                    break;
+            
+                default:
+                    JOptionPane.showMessageDialog(this, "Las credenciales ingresadas no son válidas", "Credenciales inválidas", JOptionPane.WARNING_MESSAGE);
+                    break;
+            }
         });
     }
 }
