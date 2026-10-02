@@ -152,7 +152,12 @@ public class RegistroUsuario extends JFrame {
                 return;
             }
 
-            if (!correoTexto.matches("^[\\w-\\.]+@[\\w-\\.]+\\.com$")) {
+            if (!cedulaTexto.matches("\\d{6,9}")) {
+                JOptionPane.showMessageDialog(this, "La cédula debe ser válida.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (!correoTexto.matches("^[\\w-\\.]+@[\\w-\\.]+\\.[a-zA-Z]{2,63}$")) {
                 JOptionPane.showMessageDialog(this, "La dirección de correo es inválida.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
                 return;
             }
