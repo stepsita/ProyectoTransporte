@@ -1,12 +1,9 @@
+import  componentes.*;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class RegistroUsuario extends JFrame {
-
-    private final Color colorAzulOscuro = new Color(0x11, 0x18, 0x44);
-    private final Color colorAzulMedio = new Color(0x4B, 0x56, 0x94);
-    private final Color colorAzulGris = new Color(0x72, 0x88, 0xAE);
-    private final Color colorArenaFondo = new Color(0xEA, 0xE0, 0xCF);
 
     public RegistroUsuario() {
         setTitle("Sistema de Transporte UCV - Crear Cuenta");
@@ -15,30 +12,26 @@ public class RegistroUsuario extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
+        // Uso directo de la Paleta centralizada
         JPanel panelPrincipal = new JPanel(new BorderLayout(20, 20));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(25, 35, 25, 35));
-        
-        panelPrincipal.setBackground(colorArenaFondo); 
+        panelPrincipal.setBackground(Paleta.ARENA_FONDO); 
 
-        // Encabezado
+        // Encabezado usando componentes reutilizables
         JPanel panelHeader = new JPanel(new GridLayout(2, 1, 2, 2));
         panelHeader.setOpaque(false);
-        JLabel lblTitulo = new JLabel("Registro de Usuario", SwingConstants.CENTER);
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitulo.setForeground(colorAzulOscuro);
-        JLabel lblSub = new JLabel("Crea tu cuenta para el sistema de transporte", SwingConstants.CENTER);
-        lblSub.setForeground(colorAzulMedio);
-        panelHeader.add(lblTitulo);
-        panelHeader.add(lblSub);
+        panelHeader.add(new TituloLabel("Registro de Usuario"));
+        panelHeader.add(new SubtituloLabel("Crea tu cuenta para el sistema de transporte"));
         panelPrincipal.add(panelHeader, BorderLayout.NORTH);
 
         // Formulario
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBackground(Color.WHITE);
         panelFormulario.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(colorAzulGris, 1),
+            BorderFactory.createLineBorder(Paleta.AZUL_GRIS, 1),
             BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
+        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
@@ -46,10 +39,8 @@ public class RegistroUsuario extends JFrame {
 
         // --- CÉDULA ---
         gbc.gridy = 0; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblCedula = new JLabel("Cedula:");
-        lblCedula.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblCedula.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblCedula, gbc);
+        panelFormulario.add(new FormularioLabel("Cedula:"), gbc);
+        
         gbc.gridy = 1; gbc.insets = new Insets(0, 0, 10, 0);
         JTextField txtCedula = new JTextField();
         panelFormulario.add(txtCedula, gbc);
@@ -60,26 +51,19 @@ public class RegistroUsuario extends JFrame {
         JPanel panelNombres = new JPanel(new GridLayout(1, 2, 10, 0));
         panelNombres.setOpaque(false);
         
-        //  (Nombre)
+        // (Nombre)
         JPanel colNombre = new JPanel(new BorderLayout(0, 2));
         colNombre.setOpaque(false);
-        JLabel lblNombre = new JLabel("Nombre:");
-        lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblNombre.setForeground(colorAzulOscuro);
-        colNombre.add(lblNombre, BorderLayout.NORTH);
+        colNombre.add(new FormularioLabel("Nombre:"), BorderLayout.NORTH);
         JTextField txtNombre = new JTextField();
         colNombre.add(txtNombre, BorderLayout.CENTER);
         
-        //  (Apellido)
+        // (Apellido)
         JPanel colApellido = new JPanel(new BorderLayout(0, 2));
         colApellido.setOpaque(false);
-        JLabel lblApellido = new JLabel("Apellido:");
-        lblApellido.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblApellido.setForeground(colorAzulOscuro);
-        colApellido.add(lblApellido, BorderLayout.NORTH);
+        colApellido.add(new FormularioLabel("Apellido:"), BorderLayout.NORTH);
         JTextField txtApellido = new JTextField();
         colApellido.add(txtApellido, BorderLayout.CENTER);
-        
         
         panelNombres.add(colNombre);
         panelNombres.add(colApellido);
@@ -87,10 +71,8 @@ public class RegistroUsuario extends JFrame {
 
         // --- CORREO ---
         gbc.gridy = 3; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblCorreo = new JLabel("Correo UCV:");
-        lblCorreo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblCorreo.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblCorreo, gbc);
+        panelFormulario.add(new FormularioLabel("Correo UCV:"), gbc);
+        
         gbc.gridy = 4; gbc.insets = new Insets(0, 0, 10, 0);
         JTextField txtCorreo = new JTextField();
         panelFormulario.add(txtCorreo, gbc);
@@ -102,19 +84,13 @@ public class RegistroUsuario extends JFrame {
         
         JPanel colFacultad = new JPanel(new BorderLayout(0, 2));
         colFacultad.setOpaque(false);
-        JLabel lblFacu = new JLabel("Facultad:");
-        lblFacu.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblFacu.setForeground(colorAzulOscuro);
-        colFacultad.add(lblFacu, BorderLayout.NORTH);
+        colFacultad.add(new FormularioLabel("Facultad:"), BorderLayout.NORTH);
         JTextField txtFacultad = new JTextField();
         colFacultad.add(txtFacultad, BorderLayout.CENTER);
         
         JPanel colEscuela = new JPanel(new BorderLayout(0, 2));
         colEscuela.setOpaque(false);
-        JLabel lblEscu = new JLabel("Escuela: (Para estudiantes)");
-        lblEscu.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblEscu.setForeground(colorAzulOscuro);
-        colEscuela.add(lblEscu, BorderLayout.NORTH);
+        colEscuela.add(new FormularioLabel("Escuela: (Para estudiantes)"), BorderLayout.NORTH);
         JTextField txtEscuela = new JTextField();
         colEscuela.add(txtEscuela, BorderLayout.CENTER);
         
@@ -124,43 +100,32 @@ public class RegistroUsuario extends JFrame {
 
         // --- TIPO DE PASAJERO ---
         gbc.gridy = 6; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblTipo = new JLabel("Tipo de miembro:");
-        lblTipo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblTipo.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblTipo, gbc);
+        panelFormulario.add(new FormularioLabel("Tipo de miembro:"), gbc);
+        
         gbc.gridy = 7; gbc.insets = new Insets(0, 0, 10, 0);
-        
-        
         JComboBox<ItemCombo> cmbTipoPasajero = new JComboBox<>(ConsultasBD.obtenerTiposPasajero());
         panelFormulario.add(cmbTipoPasajero, gbc);
 
         // --- CONTRASEÑA ---
         gbc.gridy = 8; gbc.insets = new Insets(5, 0, 2, 0);
-        JLabel lblcontra = new JLabel("Contraseña:");
-        lblcontra.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblcontra.setForeground(colorAzulOscuro);
-        panelFormulario.add(lblcontra, gbc);
+        panelFormulario.add(new FormularioLabel("Contraseña:"), gbc);
+        
         gbc.gridy = 9; gbc.insets = new Insets(0, 0, 10, 0);
         JPasswordField txtClave = new JPasswordField();
         panelFormulario.add(txtClave, gbc);
 
         panelPrincipal.add(panelFormulario, BorderLayout.CENTER);
 
-        // Botones inferiores
+        // Botones inferiores instanciados desde la librería
         JPanel panelBotones = new JPanel(new GridLayout(1, 2, 15, 0));
         panelBotones.setOpaque(false);
-        JButton btnVolver = new JButton("Volver");
-        btnVolver.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnVolver.setBackground(Color.WHITE);
-        btnVolver.setForeground(colorAzulOscuro);
-        btnVolver.setBorder(BorderFactory.createLineBorder(colorAzulGris, 1));
+        
+        BotonSecundario btnVolver = new BotonSecundario("Volver");
         panelBotones.add(btnVolver);
-        JButton btnRegistrar = new JButton("Registrar");
-        btnRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnRegistrar.setBackground(colorAzulOscuro);
-        btnRegistrar.setForeground(Color.WHITE);
-        btnRegistrar.setFocusPainted(false);
+        
+        BotonPrimario btnRegistrar = new BotonPrimario("Registrar");
         panelBotones.add(btnRegistrar);
+        
         panelPrincipal.add(panelBotones, BorderLayout.SOUTH);
 
         add(panelPrincipal);
