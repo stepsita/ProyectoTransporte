@@ -32,8 +32,8 @@ public class GestionDAO {
     }
 
     
-    public int validarLogin(String cedula, String contrasena) {
-        String sql = "SELECT id_rol FROM usuarios WHERE cedula = ? AND contrasena = ?";
+    public Usuario validarLogin(String cedula, String contrasena) {
+        String sql = "SELECT id_usuario, nombre, apellido, id_rol, id_tipo_pasajero FROM usuarios WHERE cedula = ? AND contrasena = ?";
 
         try (Connection conn = ConexionBD.conectar();
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -45,12 +45,19 @@ public class GestionDAO {
             
             if (rs.next()) {
                 
-                return rs.getInt("id_rol"); 
+                return new Usuario(rs.getInt(
+                    "id_usuario"), 
+                    rs.getString("nombre"), 
+                    rs.getString("apellido"), 
+                    rs.getInt("id_rol"), 
+                    rs.getInt("id_tipo_pasajero")
+                );
+                
             }
 
         } catch (SQLException e) {
             System.out.println("Error en login: " + e.getMessage());
         }
-        return 0;
+        return null;
     }
 }

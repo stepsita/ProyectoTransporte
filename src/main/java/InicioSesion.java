@@ -140,26 +140,29 @@ public class InicioSesion extends JFrame {
             }
             GestionDAO dao = new GestionDAO();
 
-            int id_rol = dao.validarLogin(usuario, clave);
-            
+            Usuario user = dao.validarLogin(usuario, clave);
+
+            if (user == null) {
+                JOptionPane.showMessageDialog(this, "Las credenciales ingresadas no son válidas", "Credenciales inválidas", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            int id_rol = user.getIdRol();
+            dispose();
+            SesionActiva.setUsuario(user);
+
             switch (id_rol) {
                 case 1:
-                    dispose(); 
                     Administrador pantallaAdmin = new Administrador();
                     pantallaAdmin.setVisible(true);
                     break;
                 case 2:
-                    dispose();
+                    
                     Conductor pantallaChofer = new Conductor();
                     pantallaChofer.setVisible(true);
                     break;
                 case 3:
-                    dispose(); 
+                    
                     new Pasajero().setVisible(true);
-                    break;
-            
-                default:
-                    JOptionPane.showMessageDialog(this, "Las credenciales ingresadas no son válidas", "Credenciales inválidas", JOptionPane.WARNING_MESSAGE);
                     break;
             }
         });

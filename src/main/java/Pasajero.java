@@ -20,6 +20,9 @@ public class Pasajero extends JFrame {
     private final Color colorAzulGris = new Color(0x72, 0x88, 0xAE);     // #7288AE
     private final Color colorArenaFondo = new Color(0xEA, 0xE0, 0xCF);    // #EAE0CF
 
+    //Usuario en sesión
+    Usuario usuario = SesionActiva.getUsuario();
+
     public Pasajero() {
         setTitle("Sistema de Transporte UCV - Panel de Pasajero");
         setSize(900, 580);
@@ -34,7 +37,7 @@ public class Pasajero extends JFrame {
         JPanel panelNav = new JPanel(new BorderLayout());
         panelNav.setBackground(colorArenaFondo);
         
-        JLabel lblBienvenida = new JLabel("Bienvenido, Pasajero UCV");
+        JLabel lblBienvenida = new JLabel("Bienvenido, "+usuario.getNombreCompleto());
         lblBienvenida.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblBienvenida.setForeground(colorAzulOscuro);
         panelNav.add(lblBienvenida, BorderLayout.WEST);
@@ -50,8 +53,9 @@ public class Pasajero extends JFrame {
 
         //evento para cerrar sesion y regresar al login
         btnCerrarSesion.addActionListener(e -> {
-            dispose(); //destruye la ventana del pasajero
-            new InicioSesion().setVisible(true); //abre el login 
+            SesionActiva.cerrarSesion();
+            dispose(); 
+            new InicioSesion().setVisible(true);
         });
 
         //aqui se crean las pestañas y se añaden al contenedor principal
@@ -66,6 +70,9 @@ public class Pasajero extends JFrame {
         panelBase.add(contenedorPestañas, BorderLayout.CENTER);
         add(panelBase);
     }
+
+
+
 
     private JPanel crearPanelRutas() {
         JPanel panelRutas = new JPanel(new BorderLayout(20, 20));
@@ -237,6 +244,9 @@ public class Pasajero extends JFrame {
         return panelRutas;
     }
 
+
+
+
     //viajes reservados
     private JPanel crearPanelReservas() {
         JPanel panelReservas = new JPanel(new BorderLayout(20, 20));
@@ -273,6 +283,8 @@ public class Pasajero extends JFrame {
 
         return panelReservas;
     }
+
+    
 
     //metodos para estilar componentes 
     private void estilarBotonFiltro(JButton boton) {
