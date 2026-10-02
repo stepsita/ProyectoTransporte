@@ -132,11 +132,15 @@ public class ConexionBD {
                 + "(1, 'Urbana'), "
                 + "(2, 'Extraurbana');";
 
+        String insertUsuario = "INSERT OR IGNORE INTO usuarios (id_usuario, nombre, apellido, cedula, id_rol, correo, contrasena) VALUES"
+                +"(1, 'Alejandro', 'Petit', '31046647', 1, 'luis@gmail.com', '123456');";
+
         try (Connection conn = conectar(); Statement state = conn.createStatement()) {
             if (conn != null) {
                 state.execute(insertRoles);
                 state.execute(insertTiposPasajero);
                 state.execute(insertTiposRuta);
+                state.execute(insertUsuario);
                 System.out.println("Catálogos poblados correctamente.");
             }
         } catch (SQLException e) {
