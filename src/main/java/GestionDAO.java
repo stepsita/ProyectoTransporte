@@ -9,7 +9,6 @@ public class GestionDAO {
     public boolean registrarUsuario(String cedula, String nombre, String apellido, String correo, String contrasena, int rol, int tipo, String facultad, String escuela) {
         String sql = "INSERT INTO usuarios(cedula, nombre, apellido, correo, contrasena, id_rol, id_tipo_pasajero, facultad, escuela) VALUES(?,?,?,?,?,?,?,?,?)";
 
-        // El try-with-resources cierra la conexión automáticamente
         try (Connection conn = ConexionBD.conectar();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -32,19 +31,18 @@ public class GestionDAO {
         }
     }
 
-    // Método para el Login (La validación)
-    public boolean validarLogin(String correo, String contrasena) {
-        String sql = "SELECT id FROM usuarios WHERE correo = ? AND contrasena = ?";
+    
+    public boolean validarLogin(String cedula, String contrasena) {
+        String sql = "SELECT id_usuario FROM usuarios WHERE cedula = ? AND contrasena = ?";
 
         try (Connection conn = ConexionBD.conectar();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, correo);
+            pstmt.setString(1, cedula);
             pstmt.setString(2, contrasena);
 
             ResultSet rs = pstmt.executeQuery();
             
-            // Si el ResultSet tiene al menos un resultado (next() es true), las credenciales son válidas
             return rs.next(); 
 
         } catch (SQLException e) {

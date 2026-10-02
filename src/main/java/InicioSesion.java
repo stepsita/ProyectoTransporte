@@ -108,7 +108,7 @@ public class InicioSesion extends JFrame {
 
         add(panelPrincipal);
 
-        
+
         //abrir registro de usuario
         btnRegistrar.addActionListener(e -> {
             dispose();
@@ -134,21 +134,37 @@ public class InicioSesion extends JFrame {
             String usuario = txtUsuario.getText().trim();
             String clave = new String(txtClave.getPassword());
 
-            if (usuario.equalsIgnoreCase("admin")) {
-                dispose(); 
-                Administrador pantallaAdmin = new Administrador();
-                pantallaAdmin.setVisible(true);
-            } else if (usuario.equalsIgnoreCase("chofer")) {
-                dispose();
-                Conductor pantallaChofer = new Conductor();
-                pantallaChofer.setVisible(true);
-            } else if (!usuario.isEmpty() && !clave.isEmpty()) {
-                dispose(); 
-                Pasajero pantallaPasajero = new Pasajero();
-                pantallaPasajero.setVisible(true);
-            } else {
+            if (usuario.isEmpty() || clave.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Por favor, complete todos los campos.", "Campos Vacios", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+            GestionDAO dao = new GestionDAO();
+
+            int id_rol = dao.validarLogin(usuario, clave);
+
+
+            // if (!exito) {
+            //     JOptionPane.showMessageDialog(this, "Las credenciales ingresadas no son válidas", "Credenciales inválidas", JOptionPane.WARNING_MESSAGE);
+            //     return;
+            //     dispose(); 
+            //     new Pasajero().setVisible(true);
+            // }
+
+
+
+            // if (usuario.equalsIgnoreCase("admin")) {
+            //     dispose(); 
+            //     Administrador pantallaAdmin = new Administrador();
+            //     pantallaAdmin.setVisible(true);
+            // } else if (usuario.equalsIgnoreCase("chofer")) {
+            //     dispose();
+            //     Conductor pantallaChofer = new Conductor();
+            //     pantallaChofer.setVisible(true);
+            // } else if (!usuario.isEmpty() && !clave.isEmpty()) {
+            //     dispose(); 
+            //     Pasajero pantallaPasajero = new Pasajero();
+            //     pantallaPasajero.setVisible(true);
+            // }
         });
     }
 }

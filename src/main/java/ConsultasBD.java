@@ -24,4 +24,5 @@ public class ConsultasBD {
         }
         return lista;
     }
+
 }
