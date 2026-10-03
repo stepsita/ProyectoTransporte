@@ -3,7 +3,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class GestionDAO {
+public class UsuarioDAO {
 
     // Método para registrar un usuario nuevo
     public boolean registrarUsuario(String cedula, String nombre, String apellido, String correo, String contrasena, int rol, int tipo, String facultad, String escuela) {

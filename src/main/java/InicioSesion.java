@@ -118,7 +118,7 @@ public class InicioSesion extends JFrame {
                 JOptionPane.showMessageDialog(this, "Por favor, complete todos los campos.", "Campos Vacios", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            GestionDAO dao = new GestionDAO();
+            UsuarioDAO dao = new UsuarioDAO();
 
             Usuario user = dao.validarLogin(usuario, clave);
 

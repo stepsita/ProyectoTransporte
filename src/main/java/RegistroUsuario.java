@@ -173,7 +173,7 @@ public class RegistroUsuario extends JFrame {
 
             
             int idTipoPasajero = tipoSeleccionado.getId();
-            GestionDAO dao = new GestionDAO();
+            UsuarioDAO dao = new UsuarioDAO();
 
             boolean exito = dao.registrarUsuario(
                 cedulaTexto,

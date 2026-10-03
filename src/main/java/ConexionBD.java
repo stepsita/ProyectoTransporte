@@ -77,7 +77,7 @@ public class ConexionBD {
                 + "id_chofer INTEGER NOT NULL, "
                 + "fecha TEXT NOT NULL, "
                 + "hora_salida TEXT NOT NULL, "
-                + "estado_recorrido TEXT DEFAULT 'En Parada' CHECK(estado_recorrido IN ('En Parada', 'En Trayecto', 'Llegando al Destino')), "
+                + "estado_recorrido TEXT DEFAULT 'En Parada' CHECK(estado_recorrido IN ('En Parada', 'En Trayecto', 'Llegando al Destino', 'Finalizado')), "
                 + "cupos_disponibles INTEGER NOT NULL, "
                 + "FOREIGN KEY(id_ruta) REFERENCES rutas(id_ruta), "
                 + "FOREIGN KEY(id_unidad) REFERENCES unidades(id_unidad), "
@@ -98,7 +98,7 @@ public class ConexionBD {
         // Ejecución de los scripts en la base de datos
         try (Connection conn = conectar(); Statement state = conn.createStatement()) {
             if (conn != null) {
-                // Habilitar el chequeo de llaves foráneas en SQLite
+                
                 state.execute("PRAGMA foreign_keys = ON;");
 
                 state.execute(tablaRoles);
@@ -133,7 +133,39 @@ public class ConexionBD {
                 + "(2, 'Extraurbana');";
 
         String insertUsuario = "INSERT OR IGNORE INTO usuarios (id_usuario, nombre, apellido, cedula, id_rol, correo, contrasena) VALUES"
-                +"(1, 'Alejandro', 'Petit', '31046647', 1, 'luis@gmail.com', '123456');";
+                +"(1, 'Alejandro', 'Petit', '31046647', 1, 'luis@gmail.com', '123456'), "
+                +"(2, 'Luis', 'Petit', '31046648', 3, 'luias@gmail.com', '123456');";
+
+        String insertRutas = "INSERT OR IGNORE INTO rutas (id_ruta, nombre_ruta,id_tipo_ruta) VALUES "
+                            +"(1, 'Catia', 1), "
+                            +"(2, 'La Rinconada', 1), "
+                            +"(3, 'Caricuao', 1), "
+                            +"(4, 'La Guaria', 2), "
+                            +"(5, 'Maracay', 2), "
+                            +"(6, 'La Vega', 1); ";
+
+        String insertConductores = "INSERT OR IGNORE INTO usuarios (cedula, nombre, apellido, correo, contrasena, id_rol) VALUES "
+                            + "('30123456', 'Sergio', 'Silva', 'sergio@gmail.com', '123456', 2), "
+                            + "('12345678', 'Stephanie', 'Salazar', 'steph@gmail.com', '123456', 2), "
+                            + "('1234567', 'Livia', 'Bernal', 'livia@gmail.com', '123456', 2);";
+
+        String insertUnidades = "INSERT OR IGNORE INTO unidades (id_unidad, placa, modelo, capacidad, estado_operativo) VALUES "
+                            + "(1, 'UCV-01A', 'Yutong Urbano', 25, 'activo'), "
+                            + "(2, 'UCV-02B', 'Encava Autobus', 40, 'activo'), "
+                            + "(3, 'UCV-03C', 'Yutong Urbano', 25, 'en mantenimiento'), "
+                            + "(4, 'UCV-04D', 'Marcopolo Paradiso', 50, 'activo'), "
+                            + "(5, 'UCV-05E', 'Encava Autobus', 40, 'fuera de servicio');";
+
+        String insertItinerarios = "INSERT OR IGNORE INTO itinerarios (id_itinerario, id_ruta, id_unidad, id_chofer, fecha, hora_salida, estado_recorrido, cupos_disponibles) VALUES "
+                            + "(1, 1, 1, 3, '2026-10-05', '07:00', 'En Parada', 25), "  
+                            + "(2, 4, 4, 4, '2026-10-05', '08:30', 'En Parada', 50), "  
+                            + "(3, 2, 2, 5, '2026-10-05', '12:00', 'En Trayecto', 15), " 
+                            + "(4, 5, 4, 3, '2026-10-06', '13:00', 'En Parada', 50), "  
+                            + "(5, 3, 1, 4, '2026-10-06', '16:00', 'Finalizado', 0);";
+
+                            
+
+
 
         try (Connection conn = conectar(); Statement state = conn.createStatement()) {
             if (conn != null) {
@@ -141,6 +173,10 @@ public class ConexionBD {
                 state.execute(insertTiposPasajero);
                 state.execute(insertTiposRuta);
                 state.execute(insertUsuario);
+                state.execute(insertRutas);
+                state.execute(insertConductores);
+                state.execute(insertUnidades);
+                state.execute(insertItinerarios);
                 System.out.println("Catálogos poblados correctamente.");
             }
         } catch (SQLException e) {
