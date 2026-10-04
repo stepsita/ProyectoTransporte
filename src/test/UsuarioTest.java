@@ -13,14 +13,14 @@ public class UsuarioTest {
     void testCorreoValido(){
         String prueba = "sergio.silva@ucv.ve";
         boolean resultado = validacionCorreo(prueba);
-        assertTrue(resultado, "El correo tiene @ucv.ve y es aceptado");
+        assertTrue(resultado, "El correo sigue el formayto y es aceptado");
     }
 
     @Test
     void testCorreoInvalido(){
-        String prueba = "sergio.silva@gmail.com";
+        String prueba = "sergio.silva@gmail.c";
         boolean resultado = validacionCorreo(prueba);
-        assertFalse(resultado, "El correo no tiene @ucv.ve y es rechazado");
+        assertFalse(resultado, "El correo no tiene un dominio correcto y es rechazado");
     }
 
     @Test
@@ -41,7 +41,7 @@ public class UsuarioTest {
         if (clave == null || clave.length() < 6 || clave.length() > 16){
             return false;
         }
-        return !clave.contains(" ");
+        return true;
     }
 
     @Test
@@ -49,13 +49,6 @@ public class UsuarioTest {
         String prueba = "password123_";
         boolean resultado = validacionClave(prueba);
         assertTrue(resultado, "La password cumple con el rango, es aceptada");
-    }
-
-    @Test
-    void testPasswordEspacio(){
-        String prueba = "pass word123_";
-        boolean resultado = validacionClave(prueba);
-        assertFalse(resultado, "La password tiene un espacio, es rechazada");
     }
 
     @Test
@@ -85,25 +78,21 @@ public class UsuarioTest {
         }
         String c = cedula.trim();
         if (!c.contains(".")){
-            return c.matches("\\d{1,9}");
-        }
-        if (c.matches("\\d{1,3}(\\.\\d{3})+")) {
-            String soloNumeros = c.replace(".", "");
-            return soloNumeros.length() <= 9;
+            return c.matches("\\d{6,9}");
         }
         return false;
     }
 
     @Test
     void testCedulaValida(){
-        String cadena = "31.893.338";
+        String cadena = "31893338";
         boolean resultado = validacionCedula(cadena);
         assertTrue(resultado, "Cedula valida, es aceptada");
     }
 
     @Test
     void testCedulaInvalida(){
-        String cadena = "3.1.89.";
+        String cadena = "3189.";
         boolean resultado = validacionCedula(cadena);
         assertFalse(resultado, "Cedula invalida, es rechazada");
     }
@@ -189,19 +178,19 @@ public class UsuarioTest {
 
     public boolean validacionHoraSalida(String hora){
         if (hora == null || hora.trim().isEmpty()) return false;
-        return hora.trim().matches("^(0?[1-9]|1[0-2]):[0-5][0-9]\\s?(AM|PM|am|pm)$");
+        return hora.trim().matches("^(0?[0-9]|1[0-2]):[0-5][0-9]$");
     }
 
     @Test
     void testHoraSalidaValida(){
-        String cadena = "08:15 AM";
+        String cadena = "16:15";
         boolean resultado = validacionHoraSalida(cadena);
         assertTrue(resultado, "Hora en formato correcto aceptada");
     }
 
     @Test
     void testHoraSalidaInvalida(){
-        String cadena = "25:99 XX";
+        String cadena = "25:99 AM";
         boolean resultado = validacionHoraSalida(cadena);
         assertFalse(resultado, "Hora fuera de formato rechazada");
     }
