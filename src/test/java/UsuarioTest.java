@@ -6,7 +6,7 @@ public class UsuarioTest {
         return false;
     }
     
-    return correo.contains("@ucv.ve");
+    return correo.matches("^[\\w-\\.]+@[\\w-\\.]+\\.[a-zA-Z]{2,63}$");
     }
 
     @Test
@@ -18,7 +18,7 @@ public class UsuarioTest {
 
     @Test
     void testCorreoInvalido(){
-        String prueba = "sergio.silva@gmail.c";
+        String prueba = "sergio.silva@gmail";
         boolean resultado = validacionCorreo(prueba);
         assertFalse(resultado, "El correo no tiene un dominio correcto y es rechazado");
     }
@@ -178,7 +178,7 @@ public class UsuarioTest {
 
     public boolean validacionHoraSalida(String hora){
         if (hora == null || hora.trim().isEmpty()) return false;
-        return hora.trim().matches("^(0?[0-9]|1[0-2]):[0-5][0-9]$");
+        return hora.trim().matches("^(0?[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$");
     }
 
     @Test

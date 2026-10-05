@@ -162,6 +162,11 @@ public class RegistroUsuario extends JFrame {
                 return;
             }
 
+            if (claveTexto.length() <6 || claveTexto.length() > 16) {
+                JOptionPane.showMessageDialog(this, "La contraseña debe ser mayor a 5 y menor a 17 caracteres.", "Formato Inválido", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             
             ItemCombo tipoSeleccionado = (ItemCombo) cmbTipoPasajero.getSelectedItem();
             boolean estudiante = tipoSeleccionado.getNombre().equals("Estudiante");
