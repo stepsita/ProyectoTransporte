@@ -28,7 +28,8 @@ public class ConexionBD {
 
         String tablaTiposPasajero = "CREATE TABLE IF NOT EXISTS tipos_pasajero ("
                 + "id_tipo INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "nombre TEXT UNIQUE NOT NULL"
+                + "nombre TEXT UNIQUE NOT NULL, "
+                + "porcentaje_tarifa REAL NOT NULL DEFAULT 100.0"
                 + ");";
 
         String tablaTiposRuta = "CREATE TABLE IF NOT EXISTS tipos_ruta ("
@@ -66,6 +67,7 @@ public class ConexionBD {
                 + "id_ruta INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "nombre_ruta TEXT NOT NULL, "
                 + "id_tipo_ruta INTEGER NOT NULL, "
+                + "tarifa_base REAL NOT NULL DEFAULT 0.0,"
                 + "FOREIGN KEY(id_tipo_ruta) REFERENCES tipos_ruta(id_tipo)"
                 + ");";
 
@@ -89,11 +91,38 @@ public class ConexionBD {
                 + "id_reserva INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "id_itinerario INTEGER NOT NULL, "
                 + "id_usuario INTEGER NOT NULL, "
+                + "codigo_ticket TEXT NOT NULL UNIQUE,"
+                + "monto_pagado REAL NOT NULL DEFAULT 0.0,"
                 + "fecha_reserva TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + "estado TEXT DEFAULT 'Activa' CHECK(estado IN ('Activa', 'Cancelada', 'Abordado')), "
                 + "FOREIGN KEY(id_itinerario) REFERENCES itinerarios(id_itinerario), "
                 + "FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)"
                 + ");";
+        
+        // 7. Monedero
+        String tablaMonederos = "CREATE TABLE IF NOT EXISTS monederos ("
+                + "id_monedero INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "id_usuario INTEGER NOT NULL UNIQUE,"
+                + "saldo_actual REAL NOT NULL DEFAULT 0.0 CHECK(saldo_actual >= 0),"
+                + "ultima_actualizacion TEXT DEFAULT CURRENT_TIMESTAMP,"
+                + "FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) );";
+
+        // 8. Transacciones
+        String tablaTransacciones = "CREATE TABLE IF NOT EXISTS transacciones_monedero ("
+                + "id_transaccion INTEGER PRIMARY KEY AUTOINCREMENT,"
+                + "id_monedero INTEGER NOT NULL,"
+                + "tipo_movimiento TEXT NOT NULL CHECK(tipo_movimiento IN ('RECARGA', 'PAGO_PASAJE', 'REEMBOLSO')),"
+                + "monto REAL NOT NULL,"
+                + "saldo_anterior REAL NOT NULL,"
+                + "saldo_posterior REAL NOT NULL,"
+                + "fecha_hora TEXT NOT NULL,"
+                + "concepto TEXT NOT NULL,"
+                + "referencia_bancaria TEXT,"
+                + "banco_origen TEXT,"
+                + "telefono_origen TEXT,"
+                + "cedula_origen TEXT,"
+                + "FOREIGN KEY(id_monedero) REFERENCES monederos(id_monedero) );";
+                
 
         // Ejecución de los scripts en la base de datos
         try (Connection conn = conectar(); Statement state = conn.createStatement()) {
@@ -109,6 +138,8 @@ public class ConexionBD {
                 state.execute(tablaRutas);
                 state.execute(tablaItinerarios);
                 state.execute(tablaReservas);
+                state.execute(tablaMonederos);
+                state.execute(tablaTransacciones);
 
                 System.out.println("Esquema de base de datos generado correctamente.");
             }
@@ -124,9 +155,10 @@ public class ConexionBD {
                 + "(2, 'Chofer'), "
                 + "(3, 'Pasajero');";
 
-        String insertTiposPasajero = "INSERT OR IGNORE INTO tipos_pasajero (id_tipo, nombre) VALUES "
-                + "(1, 'Estudiante'), "
-                + "(2, 'Empleado');";
+        String insertTiposPasajero = "INSERT OR IGNORE INTO tipos_pasajero (id_tipo, nombre, porcentaje_tarifa) VALUES "
+                + "(1, 'Estudiante', 15.0), "
+                + "(2, 'Empleado', 40.0),"
+                + "(3, 'Publico General', 100.0)";
 
         String insertTiposRuta = "INSERT OR IGNORE INTO tipos_ruta (id_tipo, nombre) VALUES "
                 + "(1, 'Urbana'), "
