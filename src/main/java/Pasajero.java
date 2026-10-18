@@ -14,6 +14,15 @@ public class Pasajero extends JFrame {
     private DefaultTableModel modeloTablaRutas;
     private TablaEstilizada tablaViajesReservados;
     private DefaultTableModel modeloTablaReservas;
+
+    private double saldoMonedero = 50.0; 
+    private JLabel lblSaldoNav;
+    private JLabel lblMontoMonedero;
+    private JTextField txtTelefono;
+    private JTextField txtCedula;
+    private JComboBox<String> cmbBanco;
+    private JTextField txtReferencia;
+    private JTextField txtMontoRecarga;
     
     // Usuario en sesión
     Usuario usuario = SesionActiva.getUsuario();
@@ -37,7 +46,19 @@ public class Pasajero extends JFrame {
         lblBienvenida.setForeground(Paleta.AZUL_OSCURO);
         panelNav.add(lblBienvenida, BorderLayout.WEST);
 
+        // Panel derecho de barra de navegación: Saldo en vivo + Cerrar Sesión
+        JPanel panelNavDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        panelNavDerecho.setOpaque(false);
+
+        lblSaldoNav = new JLabel(String.format("Saldo: %.2f Bs", saldoMonedero));
+        lblSaldoNav.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        lblSaldoNav.setForeground(Paleta.AZUL_MEDIO);
+        panelNavDerecho.add(lblSaldoNav);
+
         BotonPeligro btnCerrarSesion = new BotonPeligro("Cerrar Sesion");
+        panelNavDerecho.add(btnCerrarSesion);
+
+        panelNav.add(panelNavDerecho, BorderLayout.EAST); // <-- Así se ven el saldo Y el botón juntos a la derecha
         panelNav.add(btnCerrarSesion, BorderLayout.EAST);
         panelBase.add(panelNav, BorderLayout.NORTH);
 
@@ -54,6 +75,7 @@ public class Pasajero extends JFrame {
 
         contenedorPestañas.addTab("Rutas Disponibles", crearPanelRutas());
         contenedorPestañas.addTab("Mis Viajes Reservados", crearPanelReservas());
+        contenedorPestañas.addTab("Mi Monedero Virtual", crearPanelMonedero());
         panelBase.add(contenedorPestañas, BorderLayout.CENTER);
         add(panelBase);
     }
@@ -91,16 +113,16 @@ public class Pasajero extends JFrame {
         panelFiltros.add(btnFiltroExtraurbanas);
         panelRutas.add(panelFiltros, BorderLayout.NORTH);
 
-        String[] columnas = {"Destino", "Hora Salida", "Conductor", "Modelo Unidad", "Cupos"};
+        String[] columnas = {"Destino", "Hora Salida", "Conductor", "Modelo Unidad", "Cupos", "Precio Base"};
         modeloTablaRutas = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
-        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - Plaza Venezuela", "07:30 AM", "Carlos Mendoza", "Yutong Urbano", 25});
-        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Guarenas/Guatire", "04:30 PM", "Jose Rodriguez", "Encava Autobus", 40});
-        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Los Teques", "05:15 PM", "Luis Gomez", "Encava Autobus", 0});
-        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - La Rinconada", "12:00 PM", "Ana Martinez", "Yutong Urbano", 12});
+        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - Plaza Venezuela", "07:30 AM", "Carlos Mendoza", "Yutong Urbano", 25, 0.0});
+        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Guarenas/Guatire", "04:30 PM", "Jose Rodriguez", "Encava Autobus", 40, 80.0});
+        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Los Teques", "05:15 PM", "Luis Gomez", "Encava Autobus", 0, 90.0});
+        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - La Rinconada", "12:00 PM", "Ana Martinez", "Yutong Urbano", 12, 0.0});
 
         // La tabla ya viene con su estilo gracias a la herencia
         tablaRutasDisponibles = new TablaEstilizada(modeloTablaRutas);
@@ -186,20 +208,75 @@ public class Pasajero extends JFrame {
 
         btnReservar.addActionListener(e -> {
             int filaSeleccionada = tablaRutasDisponibles.getSelectedRow();
-            if (filaSeleccionada != -1) { 
-                String destino = modelObtenerTexto(filaSeleccionada, 0); 
-                String hora = modelObtenerTexto(filaSeleccionada, 1);
-                int cuposActuales = (int) modeloTablaRutas.getValueAt(filaSeleccionada, 4);
-                modeloTablaRutas.setValueAt(cuposActuales - 1, filaSeleccionada, 4); 
-                String codigoReserva = "UCV-" + (int)(Math.random() * 9000 + 1000); 
-                modeloTablaReservas.addRow(new Object[]{codigoReserva, destino, hora, "Activa"});
-
-                JOptionPane.showMessageDialog(this, 
-                    "--- BOLETO DIGITAL UCV ---\nCodigo: " + codigoReserva + "\nRuta: " + destino + "\nHora: " + hora + "\nEstado: Activa\n---------------------------------\nMuestre este boleto al abordar.", 
-                    "Reserva Confirmada", JOptionPane.INFORMATION_MESSAGE);
-            } else {
+            if (filaSeleccionada == -1) { 
                 JOptionPane.showMessageDialog(this, "Por favor, seleccione una ruta de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
             }
+
+            String destino = modelObtenerTexto(filaSeleccionada, 0); 
+
+            // Validar que no tenga ya una reserva activa para esta ruta
+            for (int i = 0; i < modeloTablaReservas.getRowCount(); i++) {
+                String rutaReservada = modeloTablaReservas.getValueAt(i, 1).toString();
+                if (rutaReservada.equals(destino)) {
+                    JOptionPane.showMessageDialog(this, "Ya posees una reserva activa para la ruta: " + destino + ".\nSi deseas cambiarla, primero debes cancelar la reserva actual en la pestaña 'Mis Viajes Reservados'.", "Reserva Duplicada", JOptionPane.WARNING_MESSAGE);
+                    return; // Detiene el proceso, no permite reservar de nuevo
+                }
+            }
+
+            int cuposActuales = (int) modeloTablaRutas.getValueAt(filaSeleccionada, 4);
+            if (cuposActuales <= 0) {
+                JOptionPane.showMessageDialog(this, "No quedan cupos disponibles para esta unidad.", "Sin Cupos", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String hora = modelObtenerTexto(filaSeleccionada, 1);
+            double precioBase = Double.parseDouble(modeloTablaRutas.getValueAt(filaSeleccionada, 5).toString());
+
+            // Cobro Solidario según idTipo (1=Estudiante, 2=Empleado, 3=General)
+            int idTipo = (usuario != null) ? usuario.getIdTipo() : 1;
+            String tipoTexto = "Estudiante";
+            double montoACobrar = 0.0;
+
+            if (destino.toLowerCase().contains("extraurbana")) {
+                if (idTipo == 1) { // 10% - 20%
+                    montoACobrar = precioBase * 0.15; 
+                    tipoTexto = "Estudiante";
+                } else if (idTipo == 2) { // 30% - 60%
+                    montoACobrar = precioBase * 0.40; 
+                    tipoTexto = "Empleado";
+                } else { // 100%
+                    montoACobrar = precioBase; 
+                    tipoTexto = "Público General";
+                }
+
+                // Validar si el saldo alcanza
+                if (saldoMonedero < montoACobrar) {
+                    JOptionPane.showMessageDialog(this, 
+                        String.format("Saldo insuficiente para ruta extraurbana.\nTarifa (%s): %.2f Bs\nSaldo disponible: %.2f Bs\nRecarga en 'Mi Monedero Virtual'.", tipoTexto, montoACobrar, saldoMonedero),
+                        "Saldo Insuficiente", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                saldoMonedero -= montoACobrar;
+                actualizarVistasSaldo();
+            }
+
+            // Descontar cupo y registrar reserva con el monto pagado
+            modeloTablaRutas.setValueAt(cuposActuales - 1, filaSeleccionada, 4); 
+            String codigoReserva = "UCV-" + (int)(Math.random() * 9000 + 1000); 
+            modeloTablaReservas.addRow(new Object[]{codigoReserva, destino, hora, "Activa", montoACobrar});
+
+            JOptionPane.showMessageDialog(this, 
+                "--- BOLETO DIGITAL UCV ---\n" +
+                "Codigo: " + codigoReserva + "\n" +
+                "Ruta: " + destino + "\n" +
+                "Hora: " + hora + "\n" +
+                "Tipo Pasajero: " + tipoTexto + "\n" +
+                String.format("Monto Cobrado: %.2f Bs\n", montoACobrar) +
+                String.format("Saldo Restante: %.2f Bs\n", saldoMonedero) +
+                "---------------------------------\nMuestre este boleto al abordar.", 
+                "Reserva Confirmada", JOptionPane.INFORMATION_MESSAGE);
         });
 
         return panelRutas;
@@ -210,8 +287,12 @@ public class Pasajero extends JFrame {
         panelReservas.setBackground(Color.WHITE);
         panelReservas.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        String[] columnasReservas = {"Codigo Reserva", "Destino", "Hora Salida", "Estado"};
-        modeloTablaReservas = new DefaultTableModel(columnasReservas, 0);
+        String[] columnasReservas = {"Codigo Reserva", "Destino", "Hora Salida", "Estado", "Monto Pagado"};
+        modeloTablaReservas = new DefaultTableModel(columnasReservas, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        // INSTANCIAR ANTES DE METER AL SCROLL:
         tablaViajesReservados = new TablaEstilizada(modeloTablaReservas);
 
         JScrollPane scrollTablaReservas = new JScrollPane(tablaViajesReservados);
@@ -226,8 +307,30 @@ public class Pasajero extends JFrame {
         btnCancelarReserva.addActionListener(e -> {
             int filaSeleccionada = tablaViajesReservados.getSelectedRow();
             if (filaSeleccionada != -1) {
+                String destinoCancelado = modeloTablaReservas.getValueAt(filaSeleccionada, 1).toString();
+                double montoPagado = Double.parseDouble(modeloTablaReservas.getValueAt(filaSeleccionada, 4).toString());
+
+                // Devolver cupo a la tabla de rutas
+                for (int i = 0; i < modeloTablaRutas.getRowCount(); i++) {
+                    if (modeloTablaRutas.getValueAt(i, 0).toString().equals(destinoCancelado)) {
+                        int cupos = (int) modeloTablaRutas.getValueAt(i, 4);
+                        modeloTablaRutas.setValueAt(cupos + 1, i, 4);
+                        break;
+                    }
+                }
+
+                // Si pagó pasaje extraurbano, se reembolsa
+                if (montoPagado > 0) {
+                    saldoMonedero += montoPagado;
+                    actualizarVistasSaldo();
+                    JOptionPane.showMessageDialog(this, 
+                        String.format("Reserva cancelada con exito.\nSe han reembolsado %.2f Bs a tu monedero.", montoPagado), 
+                        "Reembolso Procesado", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Reserva cancelada con exito. El cupo ha sido liberado.", "Cancelacion", JOptionPane.INFORMATION_MESSAGE);
+                }
+
                 modeloTablaReservas.removeRow(filaSeleccionada);
-                JOptionPane.showMessageDialog(this, "Reserva cancelada con exito. El cupo ha sido liberado.", "Cancelacion", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Seleccione la reserva que desea cancelar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
@@ -262,5 +365,129 @@ public class Pasajero extends JFrame {
 
     private String modelObtenerTexto(int fila, int col) {
         return modeloTablaRutas.getValueAt(fila, col).toString();
+    }
+
+    // ==========================================
+    // METODOS DEL MONEDERO VIRTUAL
+    // ==========================================
+    private JPanel crearPanelMonedero() {
+        JPanel panelMonedero = new JPanel(new BorderLayout(20, 20));
+        panelMonedero.setBackground(Color.WHITE);
+        panelMonedero.setBorder(BorderFactory.createEmptyBorder(25, 40, 25, 40));
+
+        // Tarjeta de saldo
+        JPanel cardSaldo = new JPanel(new GridLayout(2, 1, 5, 5));
+        cardSaldo.setBackground(Paleta.AZUL_OSCURO);
+        cardSaldo.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel lblTituloSaldo = new JLabel("Saldo Disponible en tu Monedero", SwingConstants.CENTER);
+        lblTituloSaldo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblTituloSaldo.setForeground(Color.WHITE);
+
+        lblMontoMonedero = new JLabel(String.format("%.2f Bs", saldoMonedero), SwingConstants.CENTER);
+        lblMontoMonedero.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        lblMontoMonedero.setForeground(Paleta.ARENA_FONDO);
+
+        cardSaldo.add(lblTituloSaldo);
+        cardSaldo.add(lblMontoMonedero);
+        panelMonedero.add(cardSaldo, BorderLayout.NORTH);
+
+        // Formulario de Pago Móvil
+        JPanel formPagoMovil = new JPanel(new GridBagLayout());
+        formPagoMovil.setBackground(Color.WHITE);
+        formPagoMovil.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1), 
+            "Recarga de Saldo vía Pago Móvil", 0, 0, 
+            new Font("Segoe UI", Font.BOLD, 12), Paleta.AZUL_MEDIO
+        ));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 12, 8, 12);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPagoMovil.add(new JLabel("Banco Emisor:"), gbc);
+        gbc.gridx = 1;
+        cmbBanco = new JComboBox<>(new String[]{"0102 - Banco de Venezuela", "0108 - Banco Provincial", "0134 - Banesco", "0105 - Banco Mercantil"});
+        formPagoMovil.add(cmbBanco, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPagoMovil.add(new JLabel("Teléfono Origen (04XX...):"), gbc);
+        gbc.gridx = 1;
+        txtTelefono = new JTextField(15);
+        formPagoMovil.add(txtTelefono, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        formPagoMovil.add(new JLabel("Cédula de Identidad:"), gbc);
+        gbc.gridx = 1;
+        txtCedula = new JTextField(15);
+        formPagoMovil.add(txtCedula, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        formPagoMovil.add(new JLabel("Número de Referencia:"), gbc);
+        gbc.gridx = 1;
+        txtReferencia = new JTextField(15);
+        formPagoMovil.add(txtReferencia, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 4;
+        formPagoMovil.add(new JLabel("Monto a Recargar (Bs):"), gbc);
+        gbc.gridx = 1;
+        txtMontoRecarga = new JTextField(15);
+        formPagoMovil.add(txtMontoRecarga, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        BotonPrimario btnRecargar = new BotonPrimario("Confirmar Recarga");
+        btnRecargar.addActionListener(e -> procesarRecarga());
+        formPagoMovil.add(btnRecargar, gbc);
+
+        panelMonedero.add(formPagoMovil, BorderLayout.CENTER);
+        return panelMonedero;
+    }
+
+    private void procesarRecarga() {
+        String tel = txtTelefono.getText().trim();
+        String ci = txtCedula.getText().trim();
+        String ref = txtReferencia.getText().trim();
+        String montoStr = txtMontoRecarga.getText().trim();
+
+        if (tel.isEmpty() || ci.isEmpty() || ref.isEmpty() || montoStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor complete todos los datos del formulario.", "Campos Requeridos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!tel.matches("\\d+") || !ci.matches("\\d+") || !ref.matches("\\d+")) {
+            JOptionPane.showMessageDialog(this, "Teléfono, Cédula y Referencia solo deben contener números.", "Formato Inválido", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            double monto = Double.parseDouble(montoStr.replace(",", "."));
+            if (monto <= 0) {
+                JOptionPane.showMessageDialog(this, "El monto a recargar debe ser mayor a 0 Bs.", "Monto Inválido", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            saldoMonedero += monto;
+            actualizarVistasSaldo();
+
+            txtTelefono.setText("");
+            txtCedula.setText("");
+            txtReferencia.setText("");
+            txtMontoRecarga.setText("");
+
+            JOptionPane.showMessageDialog(this, 
+                String.format("¡Recarga procesada exitosamente!\nSe han sumado %.2f Bs a tu monedero.", monto), 
+                "Operación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void actualizarVistasSaldo() {
+        lblSaldoNav.setText(String.format("Saldo: %.2f Bs", saldoMonedero));
+        if (lblMontoMonedero != null) {
+            lblMontoMonedero.setText(String.format("%.2f Bs", saldoMonedero));
+        }
     }
 }
