@@ -15,7 +15,6 @@ public class Pasajero extends JFrame {
     private TablaEstilizada tablaViajesReservados;
     private DefaultTableModel modeloTablaReservas;
 
-    private double saldoMonedero = 50.0; 
     private JLabel lblSaldoNav;
     private JLabel lblMontoMonedero;
     private JTextField txtTelefono;
@@ -50,7 +49,7 @@ public class Pasajero extends JFrame {
         JPanel panelNavDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         panelNavDerecho.setOpaque(false);
 
-        lblSaldoNav = new JLabel(String.format("Saldo: %.2f Bs", saldoMonedero));
+        lblSaldoNav = new JLabel(String.format("Saldo: %.2f Bs", usuario.getSaldo()));
         lblSaldoNav.setFont(new Font("Segoe UI", Font.BOLD, 15));
         lblSaldoNav.setForeground(Paleta.AZUL_MEDIO);
         panelNavDerecho.add(lblSaldoNav);
@@ -212,15 +211,12 @@ public class Pasajero extends JFrame {
                 JOptionPane.showMessageDialog(this, "Por favor, seleccione una ruta de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
             String destino = modelObtenerTexto(filaSeleccionada, 0); 
-
-            // Validar que no tenga ya una reserva activa para esta ruta
             for (int i = 0; i < modeloTablaReservas.getRowCount(); i++) {
                 String rutaReservada = modeloTablaReservas.getValueAt(i, 1).toString();
                 if (rutaReservada.equals(destino)) {
                     JOptionPane.showMessageDialog(this, "Ya posees una reserva activa para la ruta: " + destino + ".\nSi deseas cambiarla, primero debes cancelar la reserva actual en la pestaña 'Mis Viajes Reservados'.", "Reserva Duplicada", JOptionPane.WARNING_MESSAGE);
-                    return; // Detiene el proceso, no permite reservar de nuevo
+                    return;
                 }
             }
 
@@ -232,37 +228,22 @@ public class Pasajero extends JFrame {
 
             String hora = modelObtenerTexto(filaSeleccionada, 1);
             double precioBase = Double.parseDouble(modeloTablaRutas.getValueAt(filaSeleccionada, 5).toString());
-
-            // Cobro Solidario según idTipo (1=Estudiante, 2=Empleado, 3=General)
             int idTipo = (usuario != null) ? usuario.getIdTipo() : 1;
-            String tipoTexto = "Estudiante";
+            String tipoTexto = (idTipo == 1) ? "Estudiante" : (idTipo == 2) ? "Empleado" : "Público General";
+            
             double montoACobrar = 0.0;
 
             if (destino.toLowerCase().contains("extraurbana")) {
-                if (idTipo == 1) { // 10% - 20%
-                    montoACobrar = precioBase * 0.15; 
-                    tipoTexto = "Estudiante";
-                } else if (idTipo == 2) { // 30% - 60%
-                    montoACobrar = precioBase * 0.40; 
-                    tipoTexto = "Empleado";
-                } else { // 100%
-                    montoACobrar = precioBase; 
-                    tipoTexto = "Público General";
+                try {
+                    GestorCobro.procesarPago(usuario, precioBase);
+                    montoACobrar = GestorCobro.calcularTarifaSolidaria(precioBase, idTipo);
+                    actualizarVistasSaldo();
+                    
+                } catch (GestorCobro.SaldoInsuficienteException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Saldo Insuficiente", JOptionPane.ERROR_MESSAGE);
+                    return; 
                 }
-
-                // Validar si el saldo alcanza
-                if (saldoMonedero < montoACobrar) {
-                    JOptionPane.showMessageDialog(this, 
-                        String.format("Saldo insuficiente para ruta extraurbana.\nTarifa (%s): %.2f Bs\nSaldo disponible: %.2f Bs\nRecarga en 'Mi Monedero Virtual'.", tipoTexto, montoACobrar, saldoMonedero),
-                        "Saldo Insuficiente", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                saldoMonedero -= montoACobrar;
-                actualizarVistasSaldo();
             }
-
-            // Descontar cupo y registrar reserva con el monto pagado
             modeloTablaRutas.setValueAt(cuposActuales - 1, filaSeleccionada, 4); 
             String codigoReserva = "UCV-" + (int)(Math.random() * 9000 + 1000); 
             modeloTablaReservas.addRow(new Object[]{codigoReserva, destino, hora, "Activa", montoACobrar});
@@ -274,7 +255,7 @@ public class Pasajero extends JFrame {
                 "Hora: " + hora + "\n" +
                 "Tipo Pasajero: " + tipoTexto + "\n" +
                 String.format("Monto Cobrado: %.2f Bs\n", montoACobrar) +
-                String.format("Saldo Restante: %.2f Bs\n", saldoMonedero) +
+                String.format("Saldo Restante: %.2f Bs\n", usuario.getSaldo()) +
                 "---------------------------------\nMuestre este boleto al abordar.", 
                 "Reserva Confirmada", JOptionPane.INFORMATION_MESSAGE);
         });
@@ -321,7 +302,7 @@ public class Pasajero extends JFrame {
 
                 // Si pagó pasaje extraurbano, se reembolsa
                 if (montoPagado > 0) {
-                    saldoMonedero += montoPagado;
+                    usuario.setSaldo(usuario.getSaldo() + montoPagado);
                     actualizarVistasSaldo();
                     JOptionPane.showMessageDialog(this, 
                         String.format("Reserva cancelada con exito.\nSe han reembolsado %.2f Bs a tu monedero.", montoPagado), 
@@ -367,15 +348,11 @@ public class Pasajero extends JFrame {
         return modeloTablaRutas.getValueAt(fila, col).toString();
     }
 
-    // ==========================================
-    // METODOS DEL MONEDERO VIRTUAL
-    // ==========================================
     private JPanel crearPanelMonedero() {
         JPanel panelMonedero = new JPanel(new BorderLayout(20, 20));
         panelMonedero.setBackground(Color.WHITE);
         panelMonedero.setBorder(BorderFactory.createEmptyBorder(25, 40, 25, 40));
 
-        // Tarjeta de saldo
         JPanel cardSaldo = new JPanel(new GridLayout(2, 1, 5, 5));
         cardSaldo.setBackground(Paleta.AZUL_OSCURO);
         cardSaldo.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
@@ -384,7 +361,7 @@ public class Pasajero extends JFrame {
         lblTituloSaldo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         lblTituloSaldo.setForeground(Color.WHITE);
 
-        lblMontoMonedero = new JLabel(String.format("%.2f Bs", saldoMonedero), SwingConstants.CENTER);
+        lblMontoMonedero = new JLabel(String.format("%.2f Bs", usuario.getSaldo()), SwingConstants.CENTER);
         lblMontoMonedero.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblMontoMonedero.setForeground(Paleta.ARENA_FONDO);
 
@@ -392,7 +369,6 @@ public class Pasajero extends JFrame {
         cardSaldo.add(lblMontoMonedero);
         panelMonedero.add(cardSaldo, BorderLayout.NORTH);
 
-        // Formulario de Pago Móvil
         JPanel formPagoMovil = new JPanel(new GridBagLayout());
         formPagoMovil.setBackground(Color.WHITE);
         formPagoMovil.setBorder(BorderFactory.createTitledBorder(
@@ -449,25 +425,19 @@ public class Pasajero extends JFrame {
         String ci = txtCedula.getText().trim();
         String ref = txtReferencia.getText().trim();
         String montoStr = txtMontoRecarga.getText().trim();
+        String banco = (String) cmbBanco.getSelectedItem();
 
         if (tel.isEmpty() || ci.isEmpty() || ref.isEmpty() || montoStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor complete todos los datos del formulario.", "Campos Requeridos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (!tel.matches("\\d+") || !ci.matches("\\d+") || !ref.matches("\\d+")) {
-            JOptionPane.showMessageDialog(this, "Teléfono, Cédula y Referencia solo deben contener números.", "Formato Inválido", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, complete todos los campos obligatorios para procesar la recarga.", 
+                "Campos Vacíos", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             double monto = Double.parseDouble(montoStr.replace(",", "."));
-            if (monto <= 0) {
-                JOptionPane.showMessageDialog(this, "El monto a recargar debe ser mayor a 0 Bs.", "Monto Inválido", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            saldoMonedero += monto;
+            
+            GestorCobro.recargarSaldo(usuario, banco, tel, ci, ref, monto);
             actualizarVistasSaldo();
 
             txtTelefono.setText("");
@@ -481,13 +451,15 @@ public class Pasajero extends JFrame {
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+        } catch (GestorCobro.DatosInvalidosException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Error de Validación", JOptionPane.WARNING_MESSAGE);
         }
     }
 
     private void actualizarVistasSaldo() {
-        lblSaldoNav.setText(String.format("Saldo: %.2f Bs", saldoMonedero));
+        lblSaldoNav.setText(String.format("Saldo: %.2f Bs", usuario.getSaldo()));
         if (lblMontoMonedero != null) {
-            lblMontoMonedero.setText(String.format("%.2f Bs", saldoMonedero));
+            lblMontoMonedero.setText(String.format("%.2f Bs", usuario.getSaldo()));
         }
     }
 }

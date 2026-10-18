@@ -194,4 +194,32 @@ public class UsuarioTest {
         boolean resultado = validacionHoraSalida(cadena);
         assertFalse(resultado, "Hora fuera de formato rechazada");
     }
+
+    @Test
+    void testCalcularTarifaSolidiariaEstudiante(){
+    GestorCobro.actualizarConfiguracionTarifas(80.0, 20.0, 50.0);
+    double tarifaCalculada = GestorCobro.calcularTarifaSolidaria(100.0, 1);
+    assertEquals(20.0, tarifaCalculada, "El estudiante debe pagar exactamente el 20% del costo base");
+    }
+
+    @Test
+    void testCalcularTarifaSolidiariaPublicoGeneral(){
+    GestorCobro.actualizarConfiguracionTarifas(80.0, 20.0, 50.0);
+    double tarifaCalculada = GestorCobro.calcularTarifaSolidaria(100.0, 3);
+    assertEquals(100.0, tarifaCalculada, "El público general debe pagar la tarifa completa");
+    }
+
+    @Test
+    void testProcesarPagoSaldoInsuficiente(){
+    GestorCobro.actualizarConfiguracionTarifas(80.0, 20.0, 50.0);
+    Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+    usuarioPrueba.setSaldo(10.0);
+    assertThrows(GestorCobro.SaldoInsuficienteException.class, () -> {
+        GestorCobro.procesarPago(usuarioPrueba, 50.0);
+    }, "Debe abortar la transacción y lanzar excepción si el saldo es menor a la tarifa calculada");
+    }
+
+    
+
+
 }

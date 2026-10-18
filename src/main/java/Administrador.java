@@ -501,29 +501,27 @@ public class Administrador extends JFrame {
         btnGuardar.addActionListener(e -> {
             try {
                 double tBase = Double.parseDouble(txtTarifaBase.getText().trim());
-                int pctEst = Integer.parseInt(txtPctEstudiante.getText().trim());
-                int pctEmp = Integer.parseInt(txtPctEmpleado.getText().trim());
+                double pctEst = Double.parseDouble(txtPctEstudiante.getText().trim()); // Cambiado a double
+                double pctEmp = Double.parseDouble(txtPctEmpleado.getText().trim()); // Cambiado a double
 
                 if (tBase <= 0) {
                     JOptionPane.showMessageDialog(panel, "La tarifa base debe ser mayor a 0 Bs.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
                 if (pctEst < 10 || pctEst > 20) {
                     JOptionPane.showMessageDialog(panel, "El porcentaje de estudiante debe estar entre 10% y 20%.", "Rango Inválido", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-
                 if (pctEmp < 30 || pctEmp > 60) {
                     JOptionPane.showMessageDialog(panel, "El porcentaje de empleado debe estar entre 30% y 60%.", "Rango Inválido", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-
+                GestorCobro.actualizarConfiguracionTarifas(tBase, pctEst, pctEmp);
                 JOptionPane.showMessageDialog(panel, 
-                    String.format("Tarifas actualizadas correctamente\n" +
+                    String.format("Tarifas actualizadas correctamente en el sistema.\n" +
                                   "- Tarifa Base: %.2f Bs\n" +
-                                  "- Estudiantes: %d%%\n" +
-                                  "- Empleados: %d%%\n" +
+                                  "- Estudiantes: %.0f%%\n" +
+                                  "- Empleados: %.0f%%\n" +
                                   "- General: 100%%", tBase, pctEst, pctEmp),
                     "Tarifas Guardadas", JOptionPane.INFORMATION_MESSAGE);
 
