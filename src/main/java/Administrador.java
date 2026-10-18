@@ -6,15 +6,11 @@ import java.awt.*;
 import componentes.*;
 
 public class Administrador extends JFrame {
-
     private JTabbedPane contenedorPestañas;
-    
     private TablaEstilizada tablaItinerarioSemanal;
     private DefaultTableModel modeloTablaItinerario;
-    
     private TablaEstilizada tablaUnidadesFlota;
     private DefaultTableModel modeloTablaUnidades;
-
     private JComboBox<ItemCombo> cmbRuta;
     private JComboBox<ItemCombo>  cmbConductor;
     private JComboBox<ItemCombo>  cmbUnidad;
@@ -31,7 +27,6 @@ public class Administrador extends JFrame {
         JPanel panelBase = new JPanel(new BorderLayout(15, 15));
         panelBase.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         panelBase.setBackground(Paleta.ARENA_FONDO);
-
         JPanel panelNav = new JPanel(new BorderLayout());
         panelNav.setOpaque(false);
         
@@ -39,7 +34,6 @@ public class Administrador extends JFrame {
         lblBienvenida.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblBienvenida.setForeground(Paleta.AZUL_OSCURO);
         panelNav.add(lblBienvenida, BorderLayout.WEST);
-
         BotonPeligro btnCerrarSesion = new BotonPeligro("Cerrar Sesion");
         panelNav.add(btnCerrarSesion, BorderLayout.EAST);
         panelBase.add(panelNav, BorderLayout.NORTH); 
@@ -54,11 +48,10 @@ public class Administrador extends JFrame {
         contenedorPestañas.setFont(new Font("Segoe UI", Font.BOLD, 13));
         contenedorPestañas.setBackground(Color.WHITE);
         contenedorPestañas.setForeground(Paleta.AZUL_OSCURO);
-
         contenedorPestañas.addTab("Planificacion de Itinerario", crearPanelPlanificacion());
         contenedorPestañas.addTab("Gestion de Unidades", crearPanelFlota());
         contenedorPestañas.addTab("Reportes y Estadisticas", crearPanelReportes());
-
+        contenedorPestañas.addTab("Tarifas y Cobro", crearPanelConfiguracionTarifas());
         panelBase.add(contenedorPestañas, BorderLayout.CENTER);
         add(panelBase);
     }
@@ -133,7 +126,7 @@ public class Administrador extends JFrame {
 
 
         // --- PANEL DERECHO: TABLA + DETALLES ---
-        JPanel panelDerecho = new JPanel(new BorderLayout(0, 15)); // Separación vertical de 15px entre tabla y cuadro
+        JPanel panelDerecho = new JPanel(new BorderLayout(0, 15));
         panelDerecho.setBackground(Color.WHITE);
 
         String[] columnas = {"Ruta", "Hora Salida", "Conductor", "Unidad", "Estado"};
@@ -147,7 +140,7 @@ public class Administrador extends JFrame {
             modeloTablaItinerario.addRow(new Object[]{
                 itinerario.getTipoRuta()+" - "+itinerario.getNombreRuta(), 
                 itinerario.getFecha()+" - "+itinerario.getHora(), 
-                itinerario.getNombreChofer(), // Asumiendo que agregaste este atributo a la clase Itinerario
+                itinerario.getNombreChofer(), 
                 itinerario.getModeloUnidad(), 
                 itinerario.getEstado()
             });    
@@ -159,23 +152,18 @@ public class Administrador extends JFrame {
         scrollTabla.setBorder(BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1));
         panelDerecho.add(scrollTabla, BorderLayout.CENTER);
 
-        // Cuadro de texto inferior para los detalles
         JTextArea txtDetalleItinerario = new JTextArea("Selecciona un itinerario de la lista para consultar su informacion detallada.");
         txtDetalleItinerario.setFont(new Font("Segoe UI", Font.ITALIC, 13));
         txtDetalleItinerario.setEditable(false);
         txtDetalleItinerario.setBackground(Paleta.ARENA_FONDO);
         txtDetalleItinerario.setForeground(Paleta.AZUL_OSCURO);
         txtDetalleItinerario.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-
         panelDerecho.add(txtDetalleItinerario, BorderLayout.SOUTH);
-
         panelPlanificacion.add(panelDerecho, BorderLayout.CENTER);
 
-        // --- EVENTO DE SELECCIÓN PARA ACTUALIZAR EL TEXTO ---
         tablaItinerarioSemanal.getSelectionModel().addListSelectionListener(e -> {
             int fila = tablaItinerarioSemanal.getSelectedRow();
             if (fila != -1) {
-                // Extraemos los valores de la fila seleccionada
                 String ruta = modeloTablaItinerario.getValueAt(fila, 0).toString();
                 String salida = modeloTablaItinerario.getValueAt(fila, 1).toString();
                 String conductor = modeloTablaItinerario.getValueAt(fila, 2).toString();
@@ -212,7 +200,6 @@ public class Administrador extends JFrame {
             }
 
             ItinerarioDAO gestion = new ItinerarioDAO();
-
             Itinerario nuevoItinerario = gestion.registrarItinerario(
                 rutaSeleccionada.getId(), 
                 unidadSeleccionada.getId(), 
@@ -235,7 +222,6 @@ public class Administrador extends JFrame {
                 
                 txtHoraSalida.setText(""); 
                 txtFecha.setText("");
-                
                 JOptionPane.showMessageDialog(this, "Itinerario publicado con éxito para la semana.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Ocurrió un error interno al registrar el itinerario.", "Error de Base de Datos", JOptionPane.ERROR_MESSAGE);
@@ -260,13 +246,10 @@ public class Administrador extends JFrame {
             modeloTablaUnidades.addRow(new Object[]{unidad.getPlaca(), unidad.getModelo(), unidad.getCapacidad()+" pasajeros", unidad.getEstado()});
         }
         
-        // Instanciamos la TablaEstilizada
         tablaUnidadesFlota = new TablaEstilizada(modeloTablaUnidades);
-        
         JScrollPane scrollUnidades = new JScrollPane(tablaUnidadesFlota);
         scrollUnidades.setBorder(BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1));
         panelFlota.add(scrollUnidades, BorderLayout.CENTER);
-
         JPanel panelInferiorFlota = new JPanel(new BorderLayout(15, 15));
         panelInferiorFlota.setBackground(Color.WHITE);
 
@@ -281,10 +264,8 @@ public class Administrador extends JFrame {
         JPanel panelAccionesFlota = new JPanel(new GridLayout(2, 1, 0, 10));
         panelAccionesFlota.setBackground(Color.WHITE);
         
-        // Uso de Componentes para Botones
         BotonPrimario btnAgregarUnidad = new BotonPrimario("Agregar Nueva Unidad");
         BotonSecundario btnEditarUnidad = new BotonSecundario("Editar Unidad Seleccionada");
-
         panelAccionesFlota.add(btnAgregarUnidad);
         panelAccionesFlota.add(btnEditarUnidad);
         panelInferiorFlota.add(panelAccionesFlota, BorderLayout.EAST);
@@ -304,10 +285,8 @@ public class Administrador extends JFrame {
             String placa;
             while (true) {
                 placa = JOptionPane.showInputDialog(this, "Ingrese la placa de la nueva unidad:", "Agregar Unidad", JOptionPane.QUESTION_MESSAGE);
-                
                 if (placa == null) return; 
-                
-                placa = placa.trim().toUpperCase(); // Limpiamos espacios y forzamos mayúsculas
+                placa = placa.trim().toUpperCase(); 
                 if (placa.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "La placa no puede estar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
                 } else {
@@ -332,9 +311,7 @@ public class Administrador extends JFrame {
             while (true) {
                 String capInput = JOptionPane.showInputDialog(this, "Ingrese la capacidad maxima de pasajeros:", "Agregar Unidad", JOptionPane.QUESTION_MESSAGE);
                 if (capInput == null) return;
-                
                 capInput = capInput.trim();
-                
                 if (capInput.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "La capacidad no puede estar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
                 } else if (!capInput.matches("\\d+")) { 
@@ -352,7 +329,6 @@ public class Administrador extends JFrame {
 
             UnidadDAO gestion = new UnidadDAO();
             Unidad unidad = gestion.registrarUnidad(placa, modelo, capacidad);
-
             if (unidad != null) {
                 System.out.println(unidad);
                 
@@ -366,13 +342,9 @@ public class Administrador extends JFrame {
 
         btnEditarUnidad.addActionListener(e -> {
             int filaSeleccionada = tablaUnidadesFlota.getSelectedRow();
-            
             if (filaSeleccionada != -1) {
                 String placaActual = modeloTablaUnidades.getValueAt(filaSeleccionada, 0).toString();
-                
                 String capacidadActualString = modeloTablaUnidades.getValueAt(filaSeleccionada, 2).toString().replace(" Pasajeros", "").trim();
-                
-                
                 String[] opcionesEstado = {"activo", "en mantenimiento", "fuera de servicio"};
                 String nuevoEstado = (String) JOptionPane.showInputDialog(this, 
                         "Seleccione el nuevo estado tecnico para la unidad " + placaActual + ":", 
@@ -381,15 +353,11 @@ public class Administrador extends JFrame {
                         null, opcionesEstado, opcionesEstado[0]);
                 
                 if (nuevoEstado != null) {
-                    
                     int capacidadFinal = 0;
                     while (true) {
                         String nuevaCapacidadStr = JOptionPane.showInputDialog(this, "Modificar Capacidad Maxima:", capacidadActualString);
-                        
                         if (nuevaCapacidadStr == null) return;
-                        
                         nuevaCapacidadStr = nuevaCapacidadStr.trim();
-                        
                         if (nuevaCapacidadStr.isEmpty()) {
                             JOptionPane.showMessageDialog(this, "La capacidad no puede estar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
                         } else if (!nuevaCapacidadStr.matches("\\d+")) {
@@ -436,13 +404,10 @@ public class Administrador extends JFrame {
 
         JPanel panelTarjetas = new JPanel(new GridLayout(1, 3, 20, 0));
         panelTarjetas.setBackground(Color.WHITE);
-        
-        // ¡Usamos el nuevo componente TarjetaMetrica!
         panelTarjetas.add(new TarjetaMetrica("Total Pasajeros", "1,248", "Usuarios esta semana"));
         panelTarjetas.add(new TarjetaMetrica("Ruta mas Solicitada", "Guarenas", "Alta demanda extraurbana"));
         panelTarjetas.add(new TarjetaMetrica("Unidades Activas", "8 / 10", "2 en Mantenimiento"));
         panelReportes.add(panelTarjetas, BorderLayout.NORTH);
-
         JPanel panelHistorial = new JPanel(new BorderLayout(10, 10));
         panelHistorial.setBackground(Color.WHITE);
         panelHistorial.setBorder(BorderFactory.createTitledBorder(
@@ -458,11 +423,9 @@ public class Administrador extends JFrame {
         modeloHistorial.addRow(new Object[]{"Martes 02/06", "14 Viajes", "412 Alumnos", "29 Pasajeros"});
         modeloHistorial.addRow(new Object[]{"Miercoles 03/06", "11 Viajes", "296 Alumnos", "26 Pasajeros"});
         
-        // Instanciamos la TablaEstilizada
         TablaEstilizada tablaHistorial = new TablaEstilizada(modeloHistorial);
         panelHistorial.add(new JScrollPane(tablaHistorial), BorderLayout.CENTER);
         
-        // Uso de BotonPrimario
         BotonPrimario btnExportarReporte = new BotonPrimario("Exportar Datos de Estadisticas Semanales");
         btnExportarReporte.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
@@ -470,7 +433,107 @@ public class Administrador extends JFrame {
         panelReportes.add(panelHistorial, BorderLayout.CENTER);
 
         btnExportarReporte.addActionListener(e -> JOptionPane.showMessageDialog(this, "Generando y descargando el archivo excel/PDF con todas las metricas analizadas.", "Exportar Reporte", JOptionPane.INFORMATION_MESSAGE));
-
         return panelReportes;
+    }
+
+    private JPanel crearPanelConfiguracionTarifas() {
+        JPanel panel = new JPanel(new BorderLayout(20, 20));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
+
+        JPanel panelNorte = new JPanel(new GridLayout(2, 1, 5, 5));
+        panelNorte.setOpaque(false);
+        JLabel lblTitulo = new JLabel("Configuración de Tarifas y Cobro Solidario UCV");
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        lblTitulo.setForeground(Paleta.AZUL_OSCURO);
+
+        JLabel lblSub = new JLabel("Establece la tarifa base municipal y ajusta el porcentaje de cobro solidario por tipo de usuario.");
+        lblSub.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        lblSub.setForeground(Color.GRAY);
+        panelNorte.add(lblTitulo);
+        panelNorte.add(lblSub);
+        panel.add(panelNorte, BorderLayout.NORTH);
+
+        JPanel panelForm = new JPanel(new GridBagLayout());
+        panelForm.setBackground(Color.WHITE);
+        panelForm.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1), 
+            "Parámetros de Cobro", 0, 0, 
+            new Font("Segoe UI", Font.BOLD, 12), Paleta.AZUL_MEDIO
+        ));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 15, 10, 15);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panelForm.add(new FormularioLabel("Tarifa Base Municipal (Bs):"), gbc);
+
+        gbc.gridx = 1;
+        JTextField txtTarifaBase = new JTextField("80.00", 12);
+        panelForm.add(txtTarifaBase, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panelForm.add(new FormularioLabel("Porcentaje Tarifa - Estudiante (10% a 20%):"), gbc);
+
+        gbc.gridx = 1;
+        JTextField txtPctEstudiante = new JTextField("15", 12);
+        panelForm.add(txtPctEstudiante, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        panelForm.add(new FormularioLabel("Porcentaje Tarifa - Empleado (30% a 60%):"), gbc);
+
+        gbc.gridx = 1;
+        JTextField txtPctEmpleado = new JTextField("40", 12);
+        panelForm.add(txtPctEmpleado, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        panelForm.add(new FormularioLabel("Porcentaje Tarifa - Público General:"), gbc);
+
+        gbc.gridx = 1;
+        JTextField txtPctGeneral = new JTextField("100", 12);
+        txtPctGeneral.setEditable(false);
+        txtPctGeneral.setBackground(new Color(245, 245, 245));
+        panelForm.add(txtPctGeneral, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
+        BotonPrimario btnGuardar = new BotonPrimario("Actualizar Tarifas");
+        btnGuardar.addActionListener(e -> {
+            try {
+                double tBase = Double.parseDouble(txtTarifaBase.getText().trim());
+                int pctEst = Integer.parseInt(txtPctEstudiante.getText().trim());
+                int pctEmp = Integer.parseInt(txtPctEmpleado.getText().trim());
+
+                if (tBase <= 0) {
+                    JOptionPane.showMessageDialog(panel, "La tarifa base debe ser mayor a 0 Bs.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (pctEst < 10 || pctEst > 20) {
+                    JOptionPane.showMessageDialog(panel, "El porcentaje de estudiante debe estar entre 10% y 20%.", "Rango Inválido", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                if (pctEmp < 30 || pctEmp > 60) {
+                    JOptionPane.showMessageDialog(panel, "El porcentaje de empleado debe estar entre 30% y 60%.", "Rango Inválido", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                JOptionPane.showMessageDialog(panel, 
+                    String.format("Tarifas actualizadas correctamente\n" +
+                                  "- Tarifa Base: %.2f Bs\n" +
+                                  "- Estudiantes: %d%%\n" +
+                                  "- Empleados: %d%%\n" +
+                                  "- General: 100%%", tBase, pctEst, pctEmp),
+                    "Tarifas Guardadas", JOptionPane.INFORMATION_MESSAGE);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(panel, "Por favor ingrese valores numéricos válidos.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        panelForm.add(btnGuardar, gbc);
+        panel.add(panelForm, BorderLayout.CENTER);
+        return panel;
     }
 }
