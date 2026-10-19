@@ -125,7 +125,6 @@ public class ConsultasBD {
             System.out.println("Error cargando tipos: " + e.getMessage());
         }
         return lista;
-
     }
 
 }

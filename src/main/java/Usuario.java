@@ -2,14 +2,16 @@ public class Usuario {
     private int idUsuario;
     private String nombre;
     private String apellido;
+    private String cedula;
     private int idRol;
     private  int idTipo;
     private double saldo;
 
-    public Usuario(int idUsuario, String nombre, String apellido, int idRol, int idTipo) {
+    public Usuario(int idUsuario, String nombre, String apellido, String cedula, int idRol, int idTipo) {
         this.idUsuario = idUsuario;
         this.nombre = nombre;
         this.apellido = apellido;
+        this.cedula = cedula;
         this.idRol = idRol;
         this.idTipo = idTipo;
         this.saldo = 0.0;
@@ -19,6 +21,7 @@ public class Usuario {
     public int getIdUsuario() { return idUsuario; }
     public String getNombre() { return nombre; }
     public String getApellido() { return apellido; }
+    public String getCedula() { return cedula; }
     public int getIdRol() { return idRol; }
     public  int getIdTipo() { return idTipo; }
     public String getNombreCompleto() { return nombre+" "+apellido;}

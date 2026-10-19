@@ -12,8 +12,8 @@ public class Administrador extends JFrame {
     private TablaEstilizada tablaUnidadesFlota;
     private DefaultTableModel modeloTablaUnidades;
     private JComboBox<ItemCombo> cmbRuta;
-    private JComboBox<ItemCombo>  cmbConductor;
-    private JComboBox<ItemCombo>  cmbUnidad;
+    private JComboBox<ItemCombo> cmbConductor;
+    private JComboBox<ItemCombo> cmbUnidad;
     private JTextField txtHoraSalida;
     private JTextField txtFecha;
 
@@ -30,10 +30,12 @@ public class Administrador extends JFrame {
         JPanel panelNav = new JPanel(new BorderLayout());
         panelNav.setOpaque(false);
         
-        JLabel lblBienvenida = new JLabel("Bienvenido al panel de Administrador, "+usuario.getNombreCompleto());
+        String nombreAdmin = (usuario != null) ? usuario.getNombreCompleto() : "Administrador UCV";
+        JLabel lblBienvenida = new JLabel("Bienvenido al panel de Administrador, " + nombreAdmin);
         lblBienvenida.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblBienvenida.setForeground(Paleta.AZUL_OSCURO);
         panelNav.add(lblBienvenida, BorderLayout.WEST);
+
         BotonPeligro btnCerrarSesion = new BotonPeligro("Cerrar Sesion");
         panelNav.add(btnCerrarSesion, BorderLayout.EAST);
         panelBase.add(panelNav, BorderLayout.NORTH); 
@@ -61,7 +63,6 @@ public class Administrador extends JFrame {
         panelPlanificacion.setBackground(Color.WHITE);
         panelPlanificacion.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // --- PANEL IZQUIERDO: FORMULARIO ---
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBackground(Color.WHITE);
         panelFormulario.setBorder(BorderFactory.createTitledBorder(
@@ -124,8 +125,6 @@ public class Administrador extends JFrame {
         panelFormulario.setPreferredSize(new Dimension(320, 0));
         panelPlanificacion.add(panelFormulario, BorderLayout.WEST);
 
-
-        // --- PANEL DERECHO: TABLA + DETALLES ---
         JPanel panelDerecho = new JPanel(new BorderLayout(0, 15));
         panelDerecho.setBackground(Color.WHITE);
 
@@ -138,8 +137,8 @@ public class Administrador extends JFrame {
         Vector<Itinerario> itinerarios = new Vector<>(ConsultasBD.obtenerItinerarios());
         for (Itinerario itinerario : itinerarios) {
             modeloTablaItinerario.addRow(new Object[]{
-                itinerario.getTipoRuta()+" - "+itinerario.getNombreRuta(), 
-                itinerario.getFecha()+" - "+itinerario.getHora(), 
+                itinerario.getTipoRuta() + " - " + itinerario.getNombreRuta(), 
+                itinerario.getFecha() + " - " + itinerario.getHora(), 
                 itinerario.getNombreChofer(), 
                 itinerario.getModeloUnidad(), 
                 itinerario.getEstado()
@@ -194,8 +193,9 @@ public class Administrador extends JFrame {
                 return;
             }
 
-            if (!hora.matches("[0-1][0-9]:[0-5][0-9]") || !fecha.matches("[0-9]{4}-[0-1][0-9]-[0-3][0-9]")) {
-                JOptionPane.showMessageDialog(this, "La fecha o la hora están en formatos incorrectos. \n Formatos: AAA-MM-DD  00:00", "Formatos inválidos", JOptionPane.WARNING_MESSAGE);
+            // Expresión regular corregida para soportar de 00:00 a 23:59
+            if (!hora.matches("([01][0-9]|2[0-3]):[0-5][0-9]") || !fecha.matches("[0-9]{4}-[0-1][0-9]-[0-3][0-9]")) {
+                JOptionPane.showMessageDialog(this, "La fecha o la hora están en formatos incorrectos.\nFormatos: AAAA-MM-DD y HH:MM (24h)", "Formatos inválidos", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -214,7 +214,7 @@ public class Administrador extends JFrame {
                 
                 modeloTablaItinerario.addRow(new Object[]{
                     textoRutaVisual, 
-                    nuevoItinerario.getFecha()+" - "+nuevoItinerario.getHora(), 
+                    nuevoItinerario.getFecha() + " - " + nuevoItinerario.getHora(), 
                     textoConductor, 
                     nuevoItinerario.getModeloUnidad(), 
                     nuevoItinerario.getEstado()
@@ -224,7 +224,7 @@ public class Administrador extends JFrame {
                 txtFecha.setText("");
                 JOptionPane.showMessageDialog(this, "Itinerario publicado con éxito para la semana.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(this, "Ocurrió un error interno al registrar el itinerario.", "Error de Base de Datos", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "No se pudo registrar el itinerario.\nVerifique que la unidad tenga al menos 4 horas de diferencia respecto a otro viaje activo.", "Conflicto de Horario", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -243,13 +243,14 @@ public class Administrador extends JFrame {
         };
         Vector<Unidad> unidades = new Vector<>(ConsultasBD.obtenerUnidades());
         for (Unidad unidad : unidades) {
-            modeloTablaUnidades.addRow(new Object[]{unidad.getPlaca(), unidad.getModelo(), unidad.getCapacidad()+" pasajeros", unidad.getEstado()});
+            modeloTablaUnidades.addRow(new Object[]{unidad.getPlaca(), unidad.getModelo(), unidad.getCapacidad() + " Pasajeros", unidad.getEstado()});
         }
         
         tablaUnidadesFlota = new TablaEstilizada(modeloTablaUnidades);
         JScrollPane scrollUnidades = new JScrollPane(tablaUnidadesFlota);
         scrollUnidades.setBorder(BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1));
         panelFlota.add(scrollUnidades, BorderLayout.CENTER);
+
         JPanel panelInferiorFlota = new JPanel(new BorderLayout(15, 15));
         panelInferiorFlota.setBackground(Color.WHITE);
 
@@ -275,9 +276,9 @@ public class Administrador extends JFrame {
             int fila = tablaUnidadesFlota.getSelectedRow();
             if (fila != -1) {
                 String placa = modeloTablaUnidades.getValueAt(fila, 0).toString();
-                String estado = modeloTablaUnidades.getValueAt(fila, 3).toString();
                 String modelo = modeloTablaUnidades.getValueAt(fila, 1).toString();
-                txtEstadoUnidad.setText("Unidad: " + placa + " | Estado del vehículo "+modelo+" bajo la condicion de [" + estado + "].");
+                String estado = modeloTablaUnidades.getValueAt(fila, 3).toString();
+                txtEstadoUnidad.setText("Unidad: " + placa + " | Estado del vehículo " + modelo + " bajo la condicion de [" + estado + "].");
             }
         });
 
@@ -298,7 +299,6 @@ public class Administrador extends JFrame {
             while (true) {
                 modelo = JOptionPane.showInputDialog(this, "Ingrese el modelo del vehiculo:", "Agregar Unidad", JOptionPane.QUESTION_MESSAGE);
                 if (modelo == null) return;
-                
                 modelo = modelo.trim();
                 if (modelo.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "El modelo no puede estar vacío.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
@@ -318,7 +318,6 @@ public class Administrador extends JFrame {
                     JOptionPane.showMessageDialog(this, "La capacidad debe ser un número entero, sin letras ni espacios.", "Formato Inválido", JOptionPane.ERROR_MESSAGE);
                 } else {
                     capacidad = Integer.parseInt(capInput);
-                    
                     if (capacidad <= 0) {
                         JOptionPane.showMessageDialog(this, "La capacidad debe ser mayor a 0.", "Dato Ilógico", JOptionPane.ERROR_MESSAGE);
                     } else {
@@ -330,61 +329,94 @@ public class Administrador extends JFrame {
             UnidadDAO gestion = new UnidadDAO();
             Unidad unidad = gestion.registrarUnidad(placa, modelo, capacidad);
             if (unidad != null) {
-                System.out.println(unidad);
-                
                 modeloTablaUnidades.addRow(new Object[]{unidad.getPlaca(), unidad.getModelo(), unidad.getCapacidad() + " Pasajeros", unidad.getEstado()});
-                
+                cmbUnidad.setModel(new DefaultComboBoxModel<>(ConsultasBD.obtenerUnidadesCombo()));
                 JOptionPane.showMessageDialog(this, "Unidad incorporada con éxito a la flota semanal.", "Registro Completo", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Error al registrar la unidad. Es posible que la placa ingresada ya exista en el sistema.", "Error de Base de Datos", JOptionPane.ERROR_MESSAGE);
             }
         });
 
+        // DEUDA TÉCNICA RESUELTA: Edición de los 4 atributos de la unidad (Placa, Modelo, Capacidad y Estado)
         btnEditarUnidad.addActionListener(e -> {
             int filaSeleccionada = tablaUnidadesFlota.getSelectedRow();
             if (filaSeleccionada != -1) {
-                String placaActual = modeloTablaUnidades.getValueAt(filaSeleccionada, 0).toString();
-                String capacidadActualString = modeloTablaUnidades.getValueAt(filaSeleccionada, 2).toString().replace(" Pasajeros", "").trim();
-                String[] opcionesEstado = {"activo", "en mantenimiento", "fuera de servicio"};
-                String nuevoEstado = (String) JOptionPane.showInputDialog(this, 
-                        "Seleccione el nuevo estado tecnico para la unidad " + placaActual + ":", 
-                        "Editar Estado Operativo", 
-                        JOptionPane.QUESTION_MESSAGE, 
-                        null, opcionesEstado, opcionesEstado[0]);
-                
-                if (nuevoEstado != null) {
-                    int capacidadFinal = 0;
-                    while (true) {
-                        String nuevaCapacidadStr = JOptionPane.showInputDialog(this, "Modificar Capacidad Maxima:", capacidadActualString);
-                        if (nuevaCapacidadStr == null) return;
-                        nuevaCapacidadStr = nuevaCapacidadStr.trim();
-                        if (nuevaCapacidadStr.isEmpty()) {
-                            JOptionPane.showMessageDialog(this, "La capacidad no puede estar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
-                        } else if (!nuevaCapacidadStr.matches("\\d+")) {
-                            JOptionPane.showMessageDialog(this, "La capacidad debe ser un número entero, sin letras ni espacios.", "Formato Inválido", JOptionPane.ERROR_MESSAGE);
+                String placaOriginal = modeloTablaUnidades.getValueAt(filaSeleccionada, 0).toString();
+                String modeloActual = modeloTablaUnidades.getValueAt(filaSeleccionada, 1).toString();
+                String capacidadActualString = modeloTablaUnidades.getValueAt(filaSeleccionada, 2).toString()
+                        .replaceAll("(?i)pasajeros", "").trim();
+                String estadoActual = modeloTablaUnidades.getValueAt(filaSeleccionada, 3).toString();
+
+                // 1. Editar Placa
+                String nuevaPlaca;
+                while (true) {
+                    nuevaPlaca = JOptionPane.showInputDialog(this, "Modificar Placa de la unidad:", placaOriginal);
+                    if (nuevaPlaca == null) return;
+                    nuevaPlaca = nuevaPlaca.trim().toUpperCase();
+                    if (nuevaPlaca.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "La placa no puede quedar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        break;
+                    }
+                }
+
+                // 2. Editar Modelo
+                String nuevoModelo;
+                while (true) {
+                    nuevoModelo = JOptionPane.showInputDialog(this, "Modificar Modelo del vehículo:", modeloActual);
+                    if (nuevoModelo == null) return;
+                    nuevoModelo = nuevoModelo.trim();
+                    if (nuevoModelo.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "El modelo no puede quedar vacío.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        break;
+                    }
+                }
+
+                // 3. Editar Capacidad
+                int capacidadFinal = 0;
+                while (true) {
+                    String nuevaCapacidadStr = JOptionPane.showInputDialog(this, "Modificar Capacidad Maxima:", capacidadActualString);
+                    if (nuevaCapacidadStr == null) return;
+                    nuevaCapacidadStr = nuevaCapacidadStr.trim();
+                    if (nuevaCapacidadStr.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "La capacidad no puede estar vacía.", "Validación Fallida", JOptionPane.ERROR_MESSAGE);
+                    } else if (!nuevaCapacidadStr.matches("\\d+")) {
+                        JOptionPane.showMessageDialog(this, "La capacidad debe ser un número entero, sin letras ni espacios.", "Formato Inválido", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        capacidadFinal = Integer.parseInt(nuevaCapacidadStr);
+                        if (capacidadFinal <= 0) {
+                            JOptionPane.showMessageDialog(this, "La capacidad debe ser mayor a 0.", "Dato Ilógico", JOptionPane.ERROR_MESSAGE);
                         } else {
-                            capacidadFinal = Integer.parseInt(nuevaCapacidadStr);
-                            if (capacidadFinal <= 0) {
-                                JOptionPane.showMessageDialog(this, "La capacidad debe ser mayor a 0.", "Dato Ilógico", JOptionPane.ERROR_MESSAGE);
-                            } else {
-                                break;
-                            }
+                            break;
                         }
                     }
+                }
 
-                    // --- EJECUCIÓN EN LA BASE DE DATOS ---
+                // 4. Editar Estado Técnico
+                String[] opcionesEstado = {"activo", "en mantenimiento", "fuera de servicio"};
+                String nuevoEstado = (String) JOptionPane.showInputDialog(this, 
+                        "Seleccione el nuevo estado tecnico para la unidad " + nuevaPlaca + ":", 
+                        "Editar Estado Operativo", 
+                        JOptionPane.QUESTION_MESSAGE, 
+                        null, opcionesEstado, estadoActual);
+                
+                if (nuevoEstado != null) {
                     UnidadDAO gestion = new UnidadDAO();
-                    boolean exito = gestion.actualizarUnidad(placaActual, capacidadFinal, nuevoEstado);
+                    boolean exito = gestion.actualizarUnidad(placaOriginal, nuevaPlaca, nuevoModelo, capacidadFinal, nuevoEstado);
                     
                     if (exito) {
+                        modeloTablaUnidades.setValueAt(nuevaPlaca, filaSeleccionada, 0);
+                        modeloTablaUnidades.setValueAt(nuevoModelo, filaSeleccionada, 1);
                         modeloTablaUnidades.setValueAt(capacidadFinal + " Pasajeros", filaSeleccionada, 2);
                         modeloTablaUnidades.setValueAt(nuevoEstado, filaSeleccionada, 3);
                         
-                        txtEstadoUnidad.setText("Unidad: " + placaActual + " | Diagnostico tecnico: Operando bajo la condicion de [" + nuevoEstado + "].");
+                        cmbUnidad.setModel(new DefaultComboBoxModel<>(ConsultasBD.obtenerUnidadesCombo()));
+                        txtEstadoUnidad.setText("Unidad: " + nuevaPlaca + " | Estado del vehículo " + nuevoModelo + " bajo la condicion de [" + nuevoEstado + "].");
                         JOptionPane.showMessageDialog(this, "Especificaciones de la unidad actualizadas con exito.", "Modificacion Guardada", JOptionPane.INFORMATION_MESSAGE);
                     } else {
                         JOptionPane.showMessageDialog(this, 
-                            "No se pudo guardar la modificación.\nVerifique que la unidad no se encuentre actualmente prestando un servicio activo.", 
+                            "No se pudo guardar la modificación.\nVerifique que la unidad no tenga un servicio activo o que la nueva placa no esté duplicada.", 
                             "Edición Denegada", 
                             JOptionPane.WARNING_MESSAGE);
                     }
@@ -408,6 +440,7 @@ public class Administrador extends JFrame {
         panelTarjetas.add(new TarjetaMetrica("Ruta mas Solicitada", "Guarenas", "Alta demanda extraurbana"));
         panelTarjetas.add(new TarjetaMetrica("Unidades Activas", "8 / 10", "2 en Mantenimiento"));
         panelReportes.add(panelTarjetas, BorderLayout.NORTH);
+
         JPanel panelHistorial = new JPanel(new BorderLayout(10, 10));
         panelHistorial.setBackground(Color.WHITE);
         panelHistorial.setBorder(BorderFactory.createTitledBorder(
@@ -437,6 +470,8 @@ public class Administrador extends JFrame {
     }
 
     private JPanel crearPanelConfiguracionTarifas() {
+        GestorCobro.cargarConfiguracionDesdeBD();
+
         JPanel panel = new JPanel(new BorderLayout(20, 20));
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
@@ -470,21 +505,21 @@ public class Administrador extends JFrame {
         panelForm.add(new FormularioLabel("Tarifa Base Municipal (Bs):"), gbc);
 
         gbc.gridx = 1;
-        JTextField txtTarifaBase = new JTextField("80.00", 12);
+        JTextField txtTarifaBase = new JTextField(String.format("%.2f", GestorCobro.getTarifaBaseGlobal()).replace(",", "."), 12);
         panelForm.add(txtTarifaBase, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1;
         panelForm.add(new FormularioLabel("Porcentaje Tarifa - Estudiante (10% a 20%):"), gbc);
 
         gbc.gridx = 1;
-        JTextField txtPctEstudiante = new JTextField("15", 12);
+        JTextField txtPctEstudiante = new JTextField(String.format("%.0f", GestorCobro.getPorcentajeEstudiante()), 12);
         panelForm.add(txtPctEstudiante, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
         panelForm.add(new FormularioLabel("Porcentaje Tarifa - Empleado (30% a 60%):"), gbc);
 
         gbc.gridx = 1;
-        JTextField txtPctEmpleado = new JTextField("40", 12);
+        JTextField txtPctEmpleado = new JTextField(String.format("%.0f", GestorCobro.getPorcentajeEmpleado()), 12);
         panelForm.add(txtPctEmpleado, gbc);
 
         gbc.gridx = 0; gbc.gridy = 3;
@@ -500,9 +535,9 @@ public class Administrador extends JFrame {
         BotonPrimario btnGuardar = new BotonPrimario("Actualizar Tarifas");
         btnGuardar.addActionListener(e -> {
             try {
-                double tBase = Double.parseDouble(txtTarifaBase.getText().trim());
-                double pctEst = Double.parseDouble(txtPctEstudiante.getText().trim()); // Cambiado a double
-                double pctEmp = Double.parseDouble(txtPctEmpleado.getText().trim()); // Cambiado a double
+                double tBase = Double.parseDouble(txtTarifaBase.getText().trim().replace(",", "."));
+                double pctEst = Double.parseDouble(txtPctEstudiante.getText().trim().replace(",", "."));
+                double pctEmp = Double.parseDouble(txtPctEmpleado.getText().trim().replace(",", "."));
 
                 if (tBase <= 0) {
                     JOptionPane.showMessageDialog(panel, "La tarifa base debe ser mayor a 0 Bs.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -516,14 +551,19 @@ public class Administrador extends JFrame {
                     JOptionPane.showMessageDialog(panel, "El porcentaje de empleado debe estar entre 30% y 60%.", "Rango Inválido", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                GestorCobro.actualizarConfiguracionTarifas(tBase, pctEst, pctEmp);
-                JOptionPane.showMessageDialog(panel, 
-                    String.format("Tarifas actualizadas correctamente en el sistema.\n" +
-                                  "- Tarifa Base: %.2f Bs\n" +
-                                  "- Estudiantes: %.0f%%\n" +
-                                  "- Empleados: %.0f%%\n" +
-                                  "- General: 100%%", tBase, pctEst, pctEmp),
-                    "Tarifas Guardadas", JOptionPane.INFORMATION_MESSAGE);
+
+                boolean guardadoEnBD = GestorCobro.actualizarConfiguracionTarifas(tBase, pctEst, pctEmp);
+                if (guardadoEnBD) {
+                    JOptionPane.showMessageDialog(panel, 
+                        String.format("Tarifas actualizadas y guardadas en la Base de Datos.\n" +
+                                      "- Tarifa Base: %.2f Bs\n" +
+                                      "- Estudiantes: %.0f%%\n" +
+                                      "- Empleados: %.0f%%\n" +
+                                      "- General: 100%%", tBase, pctEst, pctEmp),
+                        "Tarifas Guardadas", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(panel, "Error al guardar las tarifas en la base de datos.", "Error SQL", JOptionPane.ERROR_MESSAGE);
+                }
 
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(panel, "Por favor ingrese valores numéricos válidos.", "Error de Formato", JOptionPane.ERROR_MESSAGE);

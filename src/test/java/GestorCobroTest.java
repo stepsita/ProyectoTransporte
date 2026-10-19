@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
+
 public class GestorCobroTest {
     @Test
     void testCalcularTarifaSolidiariaEstudiante(){
@@ -34,7 +35,7 @@ public class GestorCobroTest {
     @Test
     void testProcesarPagoExitoso() throws GestorCobro.SaldoInsuficienteException {
         GestorCobro.actualizarConfiguracionTarifas(80.0, 20.0, 50.0);
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 1);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 1);
         usuarioPrueba.setSaldo(50.0);
         double tarifaBase = 100.0;
         double saldoEsperado = 30.0;
@@ -46,7 +47,7 @@ public class GestorCobroTest {
     @Test
     void testProcesarPagoSaldoInsuficiente(){
         GestorCobro.actualizarConfiguracionTarifas(80.0, 20.0, 50.0);
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         usuarioPrueba.setSaldo(10.0);
         double tarifaACobrar = 50.0;
         assertThrows(GestorCobro.SaldoInsuficienteException.class, () -> {
@@ -56,7 +57,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaExitosaDatosValidos() throws GestorCobro.DatosInvalidosException{
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         usuarioPrueba.setSaldo(20.0); 
         String banco = "Banesco";
         String telefono = "04121234567";
@@ -72,7 +73,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaTelefonoInvalido(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04991234567";
         String cedula = "31893338";
@@ -86,7 +87,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaTelefonoVacio(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String bancoVacio = "";
         String telefonoBlanco = "";
         String cedulaNula = null;
@@ -100,7 +101,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaRangoExcedido(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "049912345672332";
         String cedula = "31893338";
@@ -114,7 +115,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaTelefonoInexistente(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "0499";
         String cedula = "31893338";
@@ -128,7 +129,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaReferenciaIncorrecta(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "31893338";
@@ -142,7 +143,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaReferenciaExcede(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "31893338";
@@ -156,7 +157,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaMontoNulo(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "31893338";
@@ -170,7 +171,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaMontoNegativo(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "31893338";
@@ -184,7 +185,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaCedulaInvalida(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "-31893338";
@@ -198,7 +199,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaCedulaPeque(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "3189";
@@ -212,7 +213,7 @@ public class GestorCobroTest {
 
     @Test
     void testRecargaFallaCedulaGrande(){
-        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", 1, 3);
+        Usuario usuarioPrueba = new Usuario(1, "prueba", "test", "31893338", 1, 3);
         String banco = "Mercantil";
         String telefonoMalo = "04126056730";
         String cedula = "318933381";

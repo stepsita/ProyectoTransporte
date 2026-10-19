@@ -48,7 +48,8 @@ public class UsuarioDAO {
                 return new Usuario(rs.getInt(
                     "id_usuario"), 
                     rs.getString("nombre"), 
-                    rs.getString("apellido"), 
+                    rs.getString("apellido"),
+                    cedula, 
                     rs.getInt("id_rol"), 
                     rs.getInt("id_tipo_pasajero")
                 );

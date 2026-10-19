@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.Vector;
 
 import componentes.BotonPeligro;
 import componentes.BotonPrimario;
@@ -23,10 +24,16 @@ public class Pasajero extends JFrame {
     private JTextField txtReferencia;
     private JTextField txtMontoRecarga;
     
-    // Usuario en sesión
+    // Lista en memoria de los itinerarios cargados desde BD para conservar sus IDs
+    private Vector<Itinerario> listaItinerariosBD = new Vector<>();
+
     Usuario usuario = SesionActiva.getUsuario();
 
     public Pasajero() {
+        // Sincronizamos el saldo del usuario y tarifas desde SQLite al abrir la ventana
+        GestorCobro.cargarConfiguracionDesdeBD();
+        GestorCobro.sincronizarSaldoUsuario(usuario);
+
         setTitle("Sistema de Transporte UCV - Panel de Pasajero");
         setSize(900, 580);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -39,13 +46,12 @@ public class Pasajero extends JFrame {
         JPanel panelNav = new JPanel(new BorderLayout());
         panelNav.setOpaque(false);
         
-        // Bienvenida usando la Paleta
         JLabel lblBienvenida = new JLabel("Bienvenido, " + usuario.getNombre() + " " + usuario.getApellido());
         lblBienvenida.setFont(new Font("Segoe UI", Font.BOLD, 16));
         lblBienvenida.setForeground(Paleta.AZUL_OSCURO);
         panelNav.add(lblBienvenida, BorderLayout.WEST);
 
-        // Panel derecho de barra de navegación: Saldo en vivo + Cerrar Sesión
+        // Panel derecho de barra de navegación: Saldo en vivo + Cerrar Sesión (Bug de sobreescritura corregido)
         JPanel panelNavDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         panelNavDerecho.setOpaque(false);
 
@@ -57,8 +63,7 @@ public class Pasajero extends JFrame {
         BotonPeligro btnCerrarSesion = new BotonPeligro("Cerrar Sesion");
         panelNavDerecho.add(btnCerrarSesion);
 
-        panelNav.add(panelNavDerecho, BorderLayout.EAST); // <-- Así se ven el saldo Y el botón juntos a la derecha
-        panelNav.add(btnCerrarSesion, BorderLayout.EAST);
+        panelNav.add(panelNavDerecho, BorderLayout.EAST);
         panelBase.add(panelNav, BorderLayout.NORTH);
 
         btnCerrarSesion.addActionListener(e -> {
@@ -77,6 +82,31 @@ public class Pasajero extends JFrame {
         contenedorPestañas.addTab("Mi Monedero Virtual", crearPanelMonedero());
         panelBase.add(contenedorPestañas, BorderLayout.CENTER);
         add(panelBase);
+    }
+
+    private void cargarRutasDesdeBD(String filtroTipo) {
+        modeloTablaRutas.setRowCount(0);
+        listaItinerariosBD.clear();
+
+        Vector<Itinerario> todos = ConsultasBD.obtenerItinerarios();
+        for (Itinerario it : todos) {
+            String tipoRuta = it.getTipoRuta();
+            if (filtroTipo.equals("TODAS") 
+                    || (filtroTipo.equals("URBANAS") && !tipoRuta.equalsIgnoreCase("Extraurbana"))
+                    || (filtroTipo.equals("EXTRAURBANAS") && tipoRuta.equalsIgnoreCase("Extraurbana"))) {
+                
+                listaItinerariosBD.add(it);
+                double precioBase = tipoRuta.equalsIgnoreCase("Extraurbana") ? GestorCobro.getTarifaBaseGlobal() : 0.0;
+                modeloTablaRutas.addRow(new Object[]{
+                    it.getTipoRuta() + " - " + it.getNombreRuta(),
+                    it.getFecha() + " " + it.getHora(),
+                    it.getNombreChofer(),
+                    it.getModeloUnidad(),
+                    it.getCupos(),
+                    precioBase
+                });
+            }
+        }
     }
 
     private JPanel crearPanelRutas() {
@@ -99,11 +129,7 @@ public class Pasajero extends JFrame {
         estilarBotonFiltro(btnFiltroTodas);
         estilarBotonFiltro(btnFiltroUrbanas);
         estilarBotonFiltro(btnFiltroExtraurbanas);
-        // BotonSecundario btnFiltroTodas = new BotonSecundario("Todas");
-        // BotonSecundario btnFiltroUrbanas = new BotonSecundario("Urbanas");
-        // BotonSecundario btnFiltroExtraurbanas = new BotonSecundario("Extraurbanas");
         
-        // Sobrescribimos visualmente solo el botón activo
         btnFiltroTodas.setBackground(Paleta.AZUL_MEDIO);
         btnFiltroTodas.setForeground(Color.WHITE);
 
@@ -118,12 +144,25 @@ public class Pasajero extends JFrame {
             public boolean isCellEditable(int row, int column) { return false; }
         };
 
-        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - Plaza Venezuela", "07:30 AM", "Carlos Mendoza", "Yutong Urbano", 25, 0.0});
-        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Guarenas/Guatire", "04:30 PM", "Jose Rodriguez", "Encava Autobus", 40, 80.0});
-        modeloTablaRutas.addRow(new Object[]{"Extraurbana - Los Teques", "05:15 PM", "Luis Gomez", "Encava Autobus", 0, 90.0});
-        modeloTablaRutas.addRow(new Object[]{"Ruta Interna - La Rinconada", "12:00 PM", "Ana Martinez", "Yutong Urbano", 12, 0.0});
+        cargarRutasDesdeBD("TODAS");
 
-        // La tabla ya viene con su estilo gracias a la herencia
+        // Eventos de los botones de filtro conectados a SQLite
+        btnFiltroTodas.addActionListener(e -> {
+            estilarBotonFiltro(btnFiltroTodas); estilarBotonFiltro(btnFiltroUrbanas); estilarBotonFiltro(btnFiltroExtraurbanas);
+            btnFiltroTodas.setBackground(Paleta.AZUL_MEDIO); btnFiltroTodas.setForeground(Color.WHITE);
+            cargarRutasDesdeBD("TODAS");
+        });
+        btnFiltroUrbanas.addActionListener(e -> {
+            estilarBotonFiltro(btnFiltroTodas); estilarBotonFiltro(btnFiltroUrbanas); estilarBotonFiltro(btnFiltroExtraurbanas);
+            btnFiltroUrbanas.setBackground(Paleta.AZUL_MEDIO); btnFiltroUrbanas.setForeground(Color.WHITE);
+            cargarRutasDesdeBD("URBANAS");
+        });
+        btnFiltroExtraurbanas.addActionListener(e -> {
+            estilarBotonFiltro(btnFiltroTodas); estilarBotonFiltro(btnFiltroUrbanas); estilarBotonFiltro(btnFiltroExtraurbanas);
+            btnFiltroExtraurbanas.setBackground(Paleta.AZUL_MEDIO); btnFiltroExtraurbanas.setForeground(Color.WHITE);
+            cargarRutasDesdeBD("EXTRAURBANAS");
+        });
+
         tablaRutasDisponibles = new TablaEstilizada(modeloTablaRutas);
         
         JScrollPane scrollTabla = new JScrollPane(tablaRutasDisponibles); 
@@ -141,9 +180,9 @@ public class Pasajero extends JFrame {
             new Font("Segoe UI", Font.BOLD, 11), Paleta.AZUL_MEDIO
         ));
 
-        JLabel lblEstatus1 = new JLabel("1. Programado", SwingConstants.CENTER);
-        JLabel lblEstatus2 = new JLabel("2. En Parada", SwingConstants.CENTER);
-        JLabel lblEstatus3 = new JLabel("3. En Trayecto", SwingConstants.CENTER);
+        JLabel lblEstatus1 = new JLabel("1. En Parada", SwingConstants.CENTER);
+        JLabel lblEstatus2 = new JLabel("2. En Trayecto", SwingConstants.CENTER);
+        JLabel lblEstatus3 = new JLabel("3. Llegando al Destino", SwingConstants.CENTER);
         JLabel lblEstatus4 = new JLabel("4. Finalizado", SwingConstants.CENTER);
 
         estilarEtiquetaEstado(lblEstatus1);
@@ -167,7 +206,7 @@ public class Pasajero extends JFrame {
         panelInferior.add(txtDetalleZonas, BorderLayout.CENTER);
 
         BotonPrimario btnReservar = new BotonPrimario("Asegurar Puesto");
-        btnReservar.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25)); // Ajuste específico
+        btnReservar.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
         panelInferior.add(btnReservar, BorderLayout.EAST);
         
         panelRutas.add(panelInferior, BorderLayout.SOUTH);
@@ -175,33 +214,32 @@ public class Pasajero extends JFrame {
         tablaRutasDisponibles.getSelectionModel().addListSelectionListener(e -> {
             int filaSeleccionada = tablaRutasDisponibles.getSelectedRow();
             if (filaSeleccionada != -1) {
+                Itinerario itSeleccionado = listaItinerariosBD.get(filaSeleccionada);
                 String destino = modeloTablaRutas.getValueAt(filaSeleccionada, 0).toString();
                 int cupos = (int) modeloTablaRutas.getValueAt(filaSeleccionada, 4);
+                String estadoReal = itSeleccionado.getEstado();
                 
-                lblEstatus1.setBackground(new Color(240, 240, 240)); lblEstatus1.setForeground(Color.GRAY);
-                lblEstatus2.setBackground(new Color(240, 240, 240)); lblEstatus2.setForeground(Color.GRAY);
-                lblEstatus3.setBackground(new Color(240, 240, 240)); lblEstatus3.setForeground(Color.GRAY);
-                lblEstatus4.setBackground(new Color(240, 240, 240)); lblEstatus4.setForeground(Color.GRAY);
+                estilarEtiquetaEstado(lblEstatus1);
+                estilarEtiquetaEstado(lblEstatus2);
+                estilarEtiquetaEstado(lblEstatus3);
+                estilarEtiquetaEstado(lblEstatus4);
 
-                if (destino.contains("Guarenas")) {
-                    txtDetalleZonas.setText("Zonas de Parada: Terminal Oriente -> Entrada de Guarenas -> Plaza El Maestro.");
-                    lblEstatus3.setBackground(Paleta.AZUL_MEDIO);
-                    lblEstatus3.setForeground(Color.WHITE);
-                } else if (destino.contains("Plaza Venezuela")) {
-                    txtDetalleZonas.setText("Zonas de Parada: Via Directa Interna UCV -> Salida Puerta Tamanaquito.");
-                    lblEstatus2.setBackground(new Color(40, 167, 69));
+                if (estadoReal.equalsIgnoreCase("En Parada")) {
+                    lblEstatus1.setBackground(new Color(40, 167, 69));
+                    lblEstatus1.setForeground(Color.WHITE);
+                } else if (estadoReal.equalsIgnoreCase("En Trayecto")) {
+                    lblEstatus2.setBackground(Paleta.AZUL_MEDIO);
                     lblEstatus2.setForeground(Color.WHITE);
-                } else if (destino.contains("Los Teques")) {
-                    txtDetalleZonas.setText("Zonas de Parada: Paradas oficiales establecidas en el trayecto directo.");
+                } else if (estadoReal.equalsIgnoreCase("Llegando al Destino")) {
+                    lblEstatus3.setBackground(Paleta.AZUL_GRIS);
+                    lblEstatus3.setForeground(Color.WHITE);
+                } else if (estadoReal.equalsIgnoreCase("Finalizado")) {
                     lblEstatus4.setBackground(Paleta.AZUL_OSCURO);
                     lblEstatus4.setForeground(Color.WHITE);
-                } else {
-                    txtDetalleZonas.setText("Zonas de Parada: Paradas oficiales establecidas en el trayecto directo.");
-                    lblEstatus1.setBackground(Paleta.AZUL_GRIS);
-                    lblEstatus1.setForeground(Color.WHITE);
                 }
-                
-                btnReservar.setEnabled(cupos > 0);
+
+                txtDetalleZonas.setText("Ruta seleccionada: " + destino + " | Unidad: " + itSeleccionado.getModeloUnidad() + " | Estado del viaje: " + estadoReal);
+                btnReservar.setEnabled(cupos > 0 && !estadoReal.equalsIgnoreCase("Finalizado"));
             }
         });
 
@@ -226,6 +264,7 @@ public class Pasajero extends JFrame {
                 return;
             }
 
+            Itinerario itSeleccionado = listaItinerariosBD.get(filaSeleccionada);
             String hora = modelObtenerTexto(filaSeleccionada, 1);
             double precioBase = Double.parseDouble(modeloTablaRutas.getValueAt(filaSeleccionada, 5).toString());
             int idTipo = (usuario != null) ? usuario.getIdTipo() : 1;
@@ -238,26 +277,38 @@ public class Pasajero extends JFrame {
                     GestorCobro.procesarPago(usuario, precioBase);
                     montoACobrar = GestorCobro.calcularTarifaSolidaria(precioBase, idTipo);
                     actualizarVistasSaldo();
-                    
                 } catch (GestorCobro.SaldoInsuficienteException ex) {
                     JOptionPane.showMessageDialog(this, ex.getMessage(), "Saldo Insuficiente", JOptionPane.ERROR_MESSAGE);
                     return; 
                 }
             }
-            modeloTablaRutas.setValueAt(cuposActuales - 1, filaSeleccionada, 4); 
-            String codigoReserva = "UCV-" + (int)(Math.random() * 9000 + 1000); 
-            modeloTablaReservas.addRow(new Object[]{codigoReserva, destino, hora, "Activa", montoACobrar});
 
-            JOptionPane.showMessageDialog(this, 
-                "--- BOLETO DIGITAL UCV ---\n" +
-                "Codigo: " + codigoReserva + "\n" +
-                "Ruta: " + destino + "\n" +
-                "Hora: " + hora + "\n" +
-                "Tipo Pasajero: " + tipoTexto + "\n" +
-                String.format("Monto Cobrado: %.2f Bs\n", montoACobrar) +
-                String.format("Saldo Restante: %.2f Bs\n", usuario.getSaldo()) +
-                "---------------------------------\nMuestre este boleto al abordar.", 
-                "Reserva Confirmada", JOptionPane.INFORMATION_MESSAGE);
+            // Persistimos la reserva y descontamos el cupo en SQLite
+            String codigoReserva = GestorCobro.registrarReservaBD(
+                itSeleccionado.getIdItinerario(),
+                usuario.getCedula(),
+                destino,
+                hora,
+                montoACobrar
+            );
+
+            if (codigoReserva != null) {
+                modeloTablaRutas.setValueAt(cuposActuales - 1, filaSeleccionada, 4); 
+                modeloTablaReservas.addRow(new Object[]{codigoReserva, destino, hora, "Activa", montoACobrar});
+
+                JOptionPane.showMessageDialog(this, 
+                    "--- BOLETO DIGITAL UCV ---\n" +
+                    "Codigo: " + codigoReserva + "\n" +
+                    "Ruta: " + destino + "\n" +
+                    "Hora: " + hora + "\n" +
+                    "Tipo Pasajero: " + tipoTexto + "\n" +
+                    String.format("Monto Cobrado: %.2f Bs\n", montoACobrar) +
+                    String.format("Saldo Restante: %.2f Bs\n", usuario.getSaldo()) +
+                    "---------------------------------\nMuestre este boleto al abordar.", 
+                    "Reserva Confirmada", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Error al registrar la reserva en la base de datos.", "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         return panelRutas;
@@ -273,14 +324,18 @@ public class Pasajero extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        // INSTANCIAR ANTES DE METER AL SCROLL:
+        // Cargamos las reservas activas guardadas en SQLite para este pasajero
+        Vector<Object[]> reservasGuardadas = GestorCobro.obtenerReservasActivasPorPasajero(usuario.getCedula());
+        for (Object[] fila : reservasGuardadas) {
+            modeloTablaReservas.addRow(fila);
+        }
+
         tablaViajesReservados = new TablaEstilizada(modeloTablaReservas);
 
         JScrollPane scrollTablaReservas = new JScrollPane(tablaViajesReservados);
         scrollTablaReservas.setBorder(BorderFactory.createLineBorder(Paleta.ARENA_FONDO, 1));
         panelReservas.add(scrollTablaReservas, BorderLayout.CENTER);
 
-        // Sustituimos el botón por el componente reutilizable
         BotonPeligro btnCancelarReserva = new BotonPeligro("Cancelar Reserva Seleccionada");
         btnCancelarReserva.setBorder(BorderFactory.createEmptyBorder(12, 0, 12, 0));
         panelReservas.add(btnCancelarReserva, BorderLayout.SOUTH);
@@ -288,30 +343,35 @@ public class Pasajero extends JFrame {
         btnCancelarReserva.addActionListener(e -> {
             int filaSeleccionada = tablaViajesReservados.getSelectedRow();
             if (filaSeleccionada != -1) {
+                String codigoTicket = modeloTablaReservas.getValueAt(filaSeleccionada, 0).toString();
                 String destinoCancelado = modeloTablaReservas.getValueAt(filaSeleccionada, 1).toString();
                 double montoPagado = Double.parseDouble(modeloTablaReservas.getValueAt(filaSeleccionada, 4).toString());
 
-                // Devolver cupo a la tabla de rutas
-                for (int i = 0; i < modeloTablaRutas.getRowCount(); i++) {
-                    if (modeloTablaRutas.getValueAt(i, 0).toString().equals(destinoCancelado)) {
-                        int cupos = (int) modeloTablaRutas.getValueAt(i, 4);
-                        modeloTablaRutas.setValueAt(cupos + 1, i, 4);
-                        break;
+                if (GestorCobro.cancelarReservaBD(codigoTicket)) {
+                    // Devolver cupo a la tabla visual de rutas
+                    for (int i = 0; i < modeloTablaRutas.getRowCount(); i++) {
+                        if (modeloTablaRutas.getValueAt(i, 0).toString().equals(destinoCancelado)) {
+                            int cupos = (int) modeloTablaRutas.getValueAt(i, 4);
+                            modeloTablaRutas.setValueAt(cupos + 1, i, 4);
+                            break;
+                        }
                     }
-                }
 
-                // Si pagó pasaje extraurbano, se reembolsa
-                if (montoPagado > 0) {
-                    usuario.setSaldo(usuario.getSaldo() + montoPagado);
-                    actualizarVistasSaldo();
-                    JOptionPane.showMessageDialog(this, 
-                        String.format("Reserva cancelada con exito.\nSe han reembolsado %.2f Bs a tu monedero.", montoPagado), 
-                        "Reembolso Procesado", JOptionPane.INFORMATION_MESSAGE);
+                    // Si pagó pasaje extraurbano, se reembolsa en SQLite y en memoria
+                    if (montoPagado > 0) {
+                        GestorCobro.procesarReembolso(usuario, montoPagado, destinoCancelado);
+                        actualizarVistasSaldo();
+                        JOptionPane.showMessageDialog(this, 
+                            String.format("Reserva cancelada con exito.\nSe han reembolsado %.2f Bs a tu monedero.", montoPagado), 
+                            "Reembolso Procesado", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Reserva cancelada con exito. El cupo ha sido liberado.", "Cancelacion", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
+                    modeloTablaReservas.removeRow(filaSeleccionada);
                 } else {
-                    JOptionPane.showMessageDialog(this, "Reserva cancelada con exito. El cupo ha sido liberado.", "Cancelacion", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "No se pudo cancelar la reserva en la base de datos.", "Error SQL", JOptionPane.ERROR_MESSAGE);
                 }
-
-                modeloTablaReservas.removeRow(filaSeleccionada);
             } else {
                 JOptionPane.showMessageDialog(this, "Seleccione la reserva que desea cancelar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
@@ -331,7 +391,6 @@ public class Pasajero extends JFrame {
         boton.setFocusPainted(false);
         boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
-
 
     private void estilarEtiquetaEstado(JLabel etiqueta) {
         etiqueta.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -400,7 +459,7 @@ public class Pasajero extends JFrame {
         formPagoMovil.add(txtCedula, gbc);
 
         gbc.gridx = 0; gbc.gridy = 3;
-        formPagoMovil.add(new JLabel("Número de Referencia:"), gbc);
+        formPagoMovil.add(new JLabel("Número de Referencia (4 dígitos):"), gbc);
         gbc.gridx = 1;
         txtReferencia = new JTextField(15);
         formPagoMovil.add(txtReferencia, gbc);
@@ -446,7 +505,7 @@ public class Pasajero extends JFrame {
             txtMontoRecarga.setText("");
 
             JOptionPane.showMessageDialog(this, 
-                String.format("¡Recarga procesada exitosamente!\nSe han sumado %.2f Bs a tu monedero.", monto), 
+                String.format("¡Recarga procesada y registrada en BD exitosamente!\nSe han sumado %.2f Bs a tu monedero.", monto), 
                 "Operación Exitosa", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (NumberFormatException ex) {
