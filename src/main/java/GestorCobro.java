@@ -31,7 +31,7 @@ public class GestorCobro {
         try (Connection conn = ConexionBD.conectar();
              Statement stmt = conn.createStatement()) {
 
-            // 1. Cargar porcentajes según el tipo de pasajero
+            
             ResultSet rsTipos = stmt.executeQuery("SELECT id_tipo, porcentaje_tarifa FROM tipos_pasajero");
             while (rsTipos.next()) {
                 int idTipo = rsTipos.getInt("id_tipo");
@@ -40,11 +40,11 @@ public class GestorCobro {
                 else if (idTipo == 2) porcentajeEmpleado = pct;
             }
 
-            // 2. Cargar tarifa base de las rutas extraurbanas (id_tipo_ruta = 2)
+            
             ResultSet rsRuta = stmt.executeQuery("SELECT tarifa_base FROM rutas WHERE id_tipo_ruta = 2 LIMIT 1");
             if (rsRuta.next()) {
                 double tarifaBD = rsRuta.getDouble("tarifa_base");
-                // Si en el catálogo inicial quedó en 0.0, la inicializamos en 80.0
+                
                 if (tarifaBD > 0) {
                     tarifaBaseGlobal = tarifaBD;
                 } else {
@@ -61,7 +61,7 @@ public class GestorCobro {
     public static double getPorcentajeEstudiante() { return porcentajeEstudiante; }
     public static double getPorcentajeEmpleado() { return porcentajeEmpleado; }
 
-    // --- MÉTODOS AUXILIARES PARA RESOLVER LLAVES FORÁNEAS (id_usuario e id_monedero) ---
+    
 
     private static int obtenerIdUsuarioPorCedula(Connection conn, String cedula) throws SQLException {
         String sql = "SELECT id_usuario FROM usuarios WHERE cedula = ?";
@@ -77,14 +77,14 @@ public class GestorCobro {
     }
 
     private static int obtenerOCrearIdMonedero(Connection conn, int idUsuario) throws SQLException {
-        // Aseguramos que el monedero exista para este id_usuario
+        
         String sqlInsert = "INSERT OR IGNORE INTO monederos (id_usuario, saldo_actual) VALUES (?, 0.0)";
         try (PreparedStatement pstmtIns = conn.prepareStatement(sqlInsert)) {
             pstmtIns.setInt(1, idUsuario);
             pstmtIns.executeUpdate();
         }
 
-        // Obtenemos el id_monedero
+        
         String sqlSelect = "SELECT id_monedero FROM monederos WHERE id_usuario = ?";
         try (PreparedStatement pstmtSel = conn.prepareStatement(sqlSelect)) {
             pstmtSel.setInt(1, idUsuario);
@@ -97,7 +97,7 @@ public class GestorCobro {
         return -1;
     }
 
-    // --- CONFIGURACIÓN DE TARIFAS ---
+    
 
     public static boolean actualizarConfiguracionTarifas(double tarifaBase, double pctEstudiante, double pctEmpleado) {
         String sqlUpdateTipo = "UPDATE tipos_pasajero SET porcentaje_tarifa = ? WHERE id_tipo = ?";
@@ -136,7 +136,7 @@ public class GestorCobro {
         }
     }
 
-    // --- GESTIÓN DEL MONEDERO Y TRANSACCIONES ---
+    
 
     public static void sincronizarSaldoUsuario(Usuario usuario) {
         if (usuario == null) return;
@@ -145,7 +145,7 @@ public class GestorCobro {
             int idUsuario = obtenerIdUsuarioPorCedula(conn, usuario.getCedula());
             if (idUsuario == -1) return;
 
-            // Garantiza que el registro en 'monederos' exista antes de consultarlo
+            
             obtenerOCrearIdMonedero(conn, idUsuario);
 
             String sqlSelect = "SELECT saldo_actual FROM monederos WHERE id_usuario = ?";
@@ -253,7 +253,7 @@ public class GestorCobro {
         }
     }
 
-    // Actualiza 'monederos' usando id_monedero e inserta en 'transacciones_monedero' incluyendo fecha_hora
+    
     private static boolean registrarMovimientoMonedero(String cedulaUsuario, String tipo, double monto,
             double saldoAnt, double saldoPost, String concepto,
             String banco, String telefono, String cedulaOrigen, String referencia) {
@@ -281,12 +281,12 @@ public class GestorCobro {
                 try (PreparedStatement pstmtMon = conn.prepareStatement(sqlUpdateMonedero);
                      PreparedStatement pstmtTr = conn.prepareStatement(sqlInsertTrans)) {
 
-                    // 1. Actualizar saldo en monederos
+                    
                     pstmtMon.setDouble(1, saldoPost);
                     pstmtMon.setInt(2, idMonedero);
                     pstmtMon.executeUpdate();
 
-                    // 2. Registrar historial en transacciones_monedero
+                    
                     pstmtTr.setInt(1, idMonedero);
                     pstmtTr.setString(2, tipo);
                     pstmtTr.setDouble(3, monto);
@@ -313,7 +313,7 @@ public class GestorCobro {
         }
     }
 
-    // --- GESTIÓN DE RESERVAS ADAPTADA AL ESQUEMA NORMALIZADO ---
+    
 
     public static String registrarReservaBD(int idItinerario, String cedulaPasajero, String destino, String horaSalida, double montoPagado) {
         String codigoReserva = "UCV-" + (int) (Math.random() * 9000 + 1000);
@@ -399,7 +399,7 @@ public class GestorCobro {
         }
     }
 
-    // Reconstruye el destino y la hora de salida haciendo INNER JOIN con itinerarios, rutas y tipos_ruta
+    
     public static Vector<Object[]> obtenerReservasActivasPorPasajero(String cedulaPasajero) {
         Vector<Object[]> lista = new Vector<>();
         String sql = "SELECT r.codigo_ticket, "

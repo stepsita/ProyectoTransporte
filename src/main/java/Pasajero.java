@@ -283,7 +283,7 @@ public class Pasajero extends JFrame {
                 }
             }
 
-            // Persistimos la reserva y descontamos el cupo en SQLite
+            
             String codigoReserva = GestorCobro.registrarReservaBD(
                 itSeleccionado.getIdItinerario(),
                 usuario.getCedula(),
